@@ -1,0 +1,61 @@
+<script lang="ts">
+    import { Link } from '@inertiajs/svelte';
+    import {
+        SidebarGroup,
+        SidebarGroupLabel,
+        SidebarMenu,
+        SidebarMenuButton,
+        SidebarMenuItem,
+    } from '@/components/ui/sidebar';
+    import { currentUrlState } from '@/lib/currentUrl.svelte';
+    import { toUrl } from '@/lib/utils';
+    import type { NavItem } from '@/types';
+
+    let {
+        items = [],
+        label,
+    }: {
+        items: NavItem[];
+        label?: string;
+    } = $props();
+
+    const url = currentUrlState();
+
+    function isActive(href: NavItem['href']): boolean {
+        return (
+            url.isCurrentUrl(href, url.currentUrl) ||
+            url.isCurrentOrParentUrl(href, url.currentUrl)
+        );
+    }
+</script>
+
+<SidebarGroup class="px-2 py-1">
+    {#if label}
+        <SidebarGroupLabel>{label}</SidebarGroupLabel>
+    {/if}
+
+    <SidebarMenu>
+        {#each items as item (toUrl(item.href))}
+            <SidebarMenuItem>
+                <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.href)}
+                    tooltip={item.title}
+                >
+                    {#snippet children(props)}
+                        <Link
+                            {...props}
+                            href={toUrl(item.href)}
+                            class={props.class}
+                        >
+                            {#if item.icon}
+                                <item.icon class="size-4 shrink-0" />
+                            {/if}
+                            <span>{item.title}</span>
+                        </Link>
+                    {/snippet}
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        {/each}
+    </SidebarMenu>
+</SidebarGroup>
