@@ -8,6 +8,9 @@ dataset('module pages', [
     'invoices' => ['invoices.index', 'invoices/Index'],
     'products' => ['products.index', 'products/Index'],
     'customers' => ['customers.index', 'customers/Index'],
+    'categories' => ['categories.index', 'categories/Index'],
+    'units' => ['units.index', 'units/Index'],
+    'tax-rates' => ['tax-rates.index', 'tax-rates/Index'],
     'expenses' => ['expenses.index', 'expenses/Index'],
     'documents' => ['documents.index', 'documents/Index'],
 ]);
