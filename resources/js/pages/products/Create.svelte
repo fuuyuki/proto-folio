@@ -20,6 +20,17 @@
     import AppPage from '@/components/AppPage.svelte';
     import ProductForm from '@/components/forms/ProductForm.svelte';
     import { index, store } from '@/routes/products';
+    import type { CategoryOption, TaxRateOption, UnitOption } from '@/types';
+
+    let {
+        categories = [],
+        units = [],
+        taxRates = [],
+    }: {
+        categories?: CategoryOption[];
+        units?: UnitOption[];
+        taxRates?: TaxRateOption[];
+    } = $props();
 </script>
 
 <AppHead title="New product" />
@@ -28,12 +39,15 @@
     title="New product"
     description="Add something you bill for, like a service or a physical item."
 >
-    <div class="max-w-2xl">
+    <div class="max-w-3xl">
         <ProductForm
             action={store().url}
             method="post"
             cancelHref={index().url}
             submitLabel="Create product"
+            {categories}
+            {units}
+            {taxRates}
         />
     </div>
 </AppPage>

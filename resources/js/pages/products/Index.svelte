@@ -22,6 +22,7 @@
     import Pagination from '@/components/Pagination.svelte';
     import SearchField from '@/components/SearchField.svelte';
     import { Button } from '@/components/ui/button';
+    import { Badge } from '@/components/ui/badge';
     import { formatMoney } from '@/lib/currency';
     import { create, destroy, edit, index } from '@/routes/products';
     import type { Paginated, Product } from '@/types';
@@ -77,6 +78,8 @@
                     <tr>
                         <th class="px-4 py-3 font-medium">Product</th>
                         <th class="px-4 py-3 font-medium">SKU</th>
+                        <th class="px-4 py-3 font-medium">Type</th>
+                        <th class="px-4 py-3 font-medium">Category</th>
                         <th class="px-4 py-3 text-right font-medium">Price</th>
                         <th class="px-4 py-3 font-medium">Used in</th>
                         <th class="px-4 py-3 text-right font-medium">Actions</th>
@@ -99,6 +102,20 @@
                                 class="px-4 py-3 font-mono text-xs text-muted-foreground"
                             >
                                 {product.sku}
+                            </td>
+                            <td class="px-4 py-3">
+                                <Badge
+                                    variant={product.type === 'service'
+                                        ? 'outline'
+                                        : 'secondary'}
+                                >
+                                    {product.type === 'service'
+                                        ? 'Service'
+                                        : 'Product'}
+                                </Badge>
+                            </td>
+                            <td class="px-4 py-3 text-muted-foreground">
+                                {product.category?.name ?? '—'}
                             </td>
                             <td class="px-4 py-3 text-right tabular-nums">
                                 {formatMoney(product.price)}
