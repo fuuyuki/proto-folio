@@ -4,12 +4,10 @@
     import { Button } from '@/components/ui/button';
     import {
         Dialog,
-        DialogClose,
         DialogContent,
         DialogDescription,
         DialogFooter,
         DialogTitle,
-        DialogTrigger,
     } from '@/components/ui/dialog';
 
     let {
@@ -27,6 +25,8 @@
         disabled?: boolean;
         disabledReason?: string;
     } = $props();
+
+    let open = $state(false);
 </script>
 
 {#if disabled}
@@ -40,21 +40,17 @@
         <Trash2 class="size-4" />
     </Button>
 {:else}
-    <Dialog>
-        <DialogTrigger asChild>
-            {#snippet children(props)}
-                <Button
-                    {...props}
-                    variant="ghost"
-                    size="icon"
-                    class="text-muted-foreground hover:text-destructive"
-                    aria-label={title}
-                >
-                    <Trash2 class="size-4" />
-                </Button>
-            {/snippet}
-        </DialogTrigger>
+    <Button
+        variant="ghost"
+        size="icon"
+        class="text-muted-foreground hover:text-destructive"
+        aria-label={title}
+        onclick={() => (open = true)}
+    >
+        <Trash2 class="size-4" />
+    </Button>
 
+    <Dialog bind:open>
         <DialogContent>
             <Form {action} method="delete" options={{ preserveScroll: true }}>
                 {#snippet children({ processing })}
@@ -64,13 +60,12 @@
                     </div>
 
                     <DialogFooter class="mt-6 gap-2">
-                        <DialogClose asChild>
-                            {#snippet children(props)}
-                                <Button {...props} variant="secondary">
-                                    Cancel
-                                </Button>
-                            {/snippet}
-                        </DialogClose>
+                        <Button
+                            variant="secondary"
+                            onclick={() => (open = false)}
+                        >
+                            Cancel
+                        </Button>
 
                         <Button
                             type="submit"

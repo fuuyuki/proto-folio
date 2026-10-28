@@ -3,8 +3,11 @@
     import FileText from '@lucide/svelte/icons/file-text';
     import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
     import Package from '@lucide/svelte/icons/package';
+    import Percent from '@lucide/svelte/icons/percent';
     import ReceiptText from '@lucide/svelte/icons/receipt-text';
+    import Ruler from '@lucide/svelte/icons/ruler';
     import Settings from '@lucide/svelte/icons/settings';
+    import Tags from '@lucide/svelte/icons/tags';
     import Users from '@lucide/svelte/icons/users';
     import Wallet from '@lucide/svelte/icons/wallet';
     import type { Snippet } from 'svelte';
@@ -23,12 +26,15 @@
     } from '@/components/ui/sidebar';
     import { toUrl } from '@/lib/utils';
     import { dashboard } from '@/routes';
+    import { index as categories } from '@/routes/categories';
     import { index as customers } from '@/routes/customers';
     import { index as documents } from '@/routes/documents';
     import { index as expenses } from '@/routes/expenses';
     import { index as invoices } from '@/routes/invoices';
     import { index as products } from '@/routes/products';
     import { edit as editProfile } from '@/routes/profile';
+    import { index as taxRates } from '@/routes/tax-rates';
+    import { index as units } from '@/routes/units';
     import type { NavGroup, NavItem } from '@/types';
 
     let { children }: { children?: Snippet } = $props();
@@ -61,6 +67,26 @@
                     title: 'Customers',
                     href: customers(),
                     icon: Users,
+                },
+            ],
+        },
+        {
+            label: 'Catalog',
+            items: [
+                {
+                    title: 'Categories',
+                    href: categories(),
+                    icon: Tags,
+                },
+                {
+                    title: 'Units',
+                    href: units(),
+                    icon: Ruler,
+                },
+                {
+                    title: 'Tax rates',
+                    href: taxRates(),
+                    icon: Percent,
                 },
             ],
         },
