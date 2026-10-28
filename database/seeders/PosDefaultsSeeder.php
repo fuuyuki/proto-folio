@@ -80,6 +80,14 @@ class PosDefaultsSeeder extends Seeder
                 'reset_period' => SequenceResetPeriod::Never,
             ],
             [
+                'key' => 'invoice',
+                'name' => 'Invoice number',
+                'format' => '{PREFIX}-{YY}{MM}-{SEQ:4}',
+                'prefix' => 'INV',
+                'padding' => 4,
+                'reset_period' => SequenceResetPeriod::Monthly,
+            ],
+            [
                 'key' => 'sale',
                 'name' => 'Sale receipt',
                 'format' => '{PREFIX}-{YYYYMMDD}-{SEQ:4}',

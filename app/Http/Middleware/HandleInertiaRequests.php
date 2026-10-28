@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Currency;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,7 +43,26 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'currency' => $this->baseCurrency(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * The base currency used to display money throughout the interface.
+     *
+     * @return array{code: string, symbol: string, decimal_places: int}
+     */
+    private function baseCurrency(): array
+    {
+        $code = Setting::query()->where('key', 'base_currency')->value('value') ?? 'IDR';
+
+        $currency = Currency::query()->where('code', $code)->first();
+
+        return [
+            'code' => $currency->code ?? $code,
+            'symbol' => $currency->symbol ?? $code,
+            'decimal_places' => $currency->decimal_places ?? 2,
         ];
     }
 }

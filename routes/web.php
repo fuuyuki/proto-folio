@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TaxRateController;
@@ -13,9 +14,11 @@ Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'logi
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 
-    Route::inertia('invoices', 'invoices/Index')->name('invoices.index');
     Route::inertia('expenses', 'expenses/Index')->name('expenses.index');
     Route::inertia('documents', 'documents/Index')->name('documents.index');
+
+    Route::resource('invoices', InvoiceController::class);
+    Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
 
     Route::resource('customers', CustomerController::class)->except(['show']);
     Route::resource('products', ProductController::class)->except(['show']);

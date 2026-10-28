@@ -11,6 +11,12 @@ export type Customer = {
 
 export type ProductType = 'product' | 'service';
 
+export type CurrencyConfig = {
+    code: string;
+    symbol: string;
+    decimal_places: number;
+};
+
 export type Product = {
     id: number;
     name: string;
@@ -83,6 +89,57 @@ export type TaxRate = {
     products_count?: number;
     created_at: string;
     updated_at: string;
+};
+
+export type InvoiceStatus = 'draft' | 'sent' | 'paid';
+
+export type Invoice = {
+    id: number;
+    customer_id: number;
+    number: string;
+    status: InvoiceStatus;
+    issue_date: string;
+    due_date: string | null;
+    subtotal: string;
+    tax_amount: string;
+    total_amount: string;
+    notes: string | null;
+    items_count?: number;
+    customer?: {
+        id: number;
+        name: string;
+        email?: string | null;
+        phone?: string | null;
+        address?: string | null;
+    } | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type InvoiceLine = {
+    product_id: number | null;
+    quantity: string;
+    unit_price: string;
+    tax_rate: string;
+};
+
+export type InvoiceLineOutput = InvoiceLine & {
+    id: number;
+    description: string;
+    line_total: string;
+};
+
+export type InvoiceProductOption = {
+    id: number;
+    name: string;
+    sku: string;
+    price: string;
+    tax_rate: number;
+};
+
+export type CustomerOption = {
+    id: number;
+    name: string;
 };
 
 export type Paginated<T> = {
