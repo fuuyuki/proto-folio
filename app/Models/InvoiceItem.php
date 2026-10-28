@@ -16,6 +16,8 @@ use Illuminate\Support\Carbon;
  * @property string $quantity
  * @property string $unit_price
  * @property string $tax_rate
+ * @property Product|null $product
+ * @property Invoice $invoice
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
