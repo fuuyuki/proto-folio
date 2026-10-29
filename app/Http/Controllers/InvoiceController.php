@@ -45,10 +45,7 @@ class InvoiceController extends Controller
         return Inertia::render('invoices/Index', [
             'invoices' => $query->latest('issue_date')->latest('id')->paginate(10)->withQueryString(),
             'filters' => ['search' => $search, 'status' => $status],
-            'statuses' => array_map(
-                fn (InvoiceStatus $case): array => ['value' => $case->value, 'label' => $case->label()],
-                InvoiceStatus::cases(),
-            ),
+            'statuses' => $this->statuses(),
         ]);
     }
 
@@ -97,6 +94,8 @@ class InvoiceController extends Controller
         return Inertia::render('invoices/Show', [
             'invoice' => $invoice,
             'items' => $this->presentItems($invoice),
+            'labels' => $this->invoiceLabels(),
+            'statuses' => $this->statuses(),
         ]);
     }
 
@@ -166,6 +165,7 @@ class InvoiceController extends Controller
         return Inertia::render('invoices/Print', [
             'invoice' => $invoice,
             'items' => $this->presentItems($invoice),
+            'labels' => $this->invoiceLabels(),
             'company' => config('app.name'),
         ]);
     }
@@ -236,6 +236,52 @@ class InvoiceController extends Controller
                 ),
             ];
         })->values()->all();
+    }
+
+    /**
+     * The translated labels used by the invoice pages.
+     *
+     * @return array<string, string>
+     */
+    private function invoiceLabels(): array
+    {
+        return [
+            'receipt_title' => __('invoice.receipt_title'),
+            'date' => __('invoice.date'),
+            'due_date' => __('invoice.due_date'),
+            'status' => __('invoice.status'),
+            'billed_to' => __('invoice.billed_to'),
+            'details' => __('invoice.details'),
+            'item' => __('invoice.item'),
+            'qty' => __('invoice.qty'),
+            'price' => __('invoice.price'),
+            'tax' => __('invoice.tax'),
+            'amount' => __('invoice.amount'),
+            'subtotal' => __('invoice.subtotal'),
+            'total' => __('invoice.total'),
+            'notes' => __('invoice.notes'),
+            'thank_you' => __('invoice.thank_you'),
+            'issued' => __('invoice.issued'),
+            'print' => __('invoice.print'),
+            'print_receipt' => __('invoice.print_receipt'),
+            'back_to_invoice' => __('invoice.back_to_invoice'),
+        ];
+    }
+
+    /**
+     * The invoice statuses with their translated labels.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function statuses(): array
+    {
+        return array_map(
+            fn (InvoiceStatus $case): array => [
+                'value' => $case->value,
+                'label' => $case->label(),
+            ],
+            InvoiceStatus::cases(),
+        );
     }
 
     /**

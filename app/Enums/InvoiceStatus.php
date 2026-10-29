@@ -13,10 +13,6 @@ enum InvoiceStatus: string
      */
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Draft',
-            self::Sent => 'Sent',
-            self::Paid => 'Paid',
-        };
+        return __('invoice.statuses.'.$this->value);
     }
 }
