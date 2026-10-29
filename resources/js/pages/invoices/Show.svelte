@@ -16,7 +16,7 @@
 </script>
 
 <script lang="ts">
-    import { Link } from '@inertiajs/svelte';
+    import { Link, page } from '@inertiajs/svelte';
     import Printer from '@lucide/svelte/icons/printer';
     import AppHead from '@/components/AppHead.svelte';
     import AppPage from '@/components/AppPage.svelte';
@@ -39,9 +39,13 @@
     let {
         invoice,
         items,
+        labels,
+        statuses,
     }: {
         invoice: Invoice;
         items: InvoiceLineOutput[];
+        labels: Record<string, string>;
+        statuses: { value: InvoiceStatus; label: string }[];
     } = $props();
 
     const badgeVariant: Record<
@@ -58,7 +62,7 @@
             return '—';
         }
 
-        return new Date(value).toLocaleDateString('en-GB', {
+        return new Date(value).toLocaleDateString(page.props.locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -68,13 +72,17 @@
     function formatQuantity(value: string): string {
         return Number.parseFloat(value).toString();
     }
+
+    function statusLabel(status: InvoiceStatus): string {
+        return statuses.find((item) => item.value === status)?.label ?? status;
+    }
 </script>
 
 <AppHead title={invoice.number} />
 
 <AppPage
     title={invoice.number}
-    description={`Issued ${formatDate(invoice.issue_date)}`}
+    description={`${labels.issued} ${formatDate(invoice.issue_date)}`}
 >
     {#snippet actions()}
         <Button variant="secondary" asChild>
@@ -87,7 +95,7 @@
                     rel="noopener"
                 >
                     <Printer class="size-4" />
-                    Print receipt
+                    {labels.print_receipt}
                 </a>
             {/snippet}
         </Button>
@@ -109,7 +117,7 @@
 
     <div class="grid gap-6 lg:grid-cols-3">
         <section class="rounded-xl border border-border bg-card p-6">
-            <h2 class="text-sm font-semibold">Billed to</h2>
+            <h2 class="text-sm font-semibold">{labels.billed_to}</h2>
             <p class="mt-2 font-medium">{invoice.customer?.name ?? '—'}</p>
             {#if invoice.customer?.email}
                 <p class="text-sm text-muted-foreground">
@@ -129,34 +137,31 @@
         </section>
 
         <section class="rounded-xl border border-border bg-card p-6">
-            <h2 class="text-sm font-semibold">Details</h2>
+            <h2 class="text-sm font-semibold">{labels.details}</h2>
             <dl class="mt-2 space-y-2 text-sm">
                 <div class="flex items-center justify-between gap-4">
-                    <dt class="text-muted-foreground">Status</dt>
+                    <dt class="text-muted-foreground">{labels.status}</dt>
                     <dd>
                         <Badge variant={badgeVariant[invoice.status]}>
-                            {invoice.status}
+                            {statusLabel(invoice.status)}
                         </Badge>
                     </dd>
                 </div>
                 <div class="flex items-center justify-between gap-4">
-                    <dt class="text-muted-foreground">Issued</dt>
+                    <dt class="text-muted-foreground">{labels.issued}</dt>
                     <dd>{formatDate(invoice.issue_date)}</dd>
                 </div>
                 <div class="flex items-center justify-between gap-4">
-                    <dt class="text-muted-foreground">Due</dt>
+                    <dt class="text-muted-foreground">{labels.due_date}</dt>
                     <dd>{formatDate(invoice.due_date)}</dd>
                 </div>
             </dl>
         </section>
 
         <section class="rounded-xl border border-border bg-card p-6">
-            <h2 class="text-sm font-semibold">Total</h2>
+            <h2 class="text-sm font-semibold">{labels.total}</h2>
             <p class="mt-2 text-2xl font-semibold tabular-nums">
                 {formatMoney(invoice.total_amount)}
-            </p>
-            <p class="text-xs text-muted-foreground">
-                Includes {formatMoney(invoice.tax_amount)} tax
             </p>
         </section>
     </div>
@@ -167,11 +172,11 @@
                 class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
             >
                 <tr>
-                    <th class="px-4 py-3 font-medium">Item</th>
-                    <th class="px-4 py-3 text-right font-medium">Qty</th>
-                    <th class="px-4 py-3 text-right font-medium">Price</th>
-                    <th class="px-4 py-3 text-right font-medium">Tax</th>
-                    <th class="px-4 py-3 text-right font-medium">Amount</th>
+                    <th class="px-4 py-3 font-medium">{labels.item}</th>
+                    <th class="px-4 py-3 text-right font-medium">{labels.qty}</th>
+                    <th class="px-4 py-3 text-right font-medium">{labels.price}</th>
+                    <th class="px-4 py-3 text-right font-medium">{labels.tax}</th>
+                    <th class="px-4 py-3 text-right font-medium">{labels.amount}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -199,7 +204,7 @@
     <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         {#if invoice.notes}
             <section class="max-w-xl rounded-xl border border-border bg-card p-6">
-                <h2 class="text-sm font-semibold">Notes</h2>
+                <h2 class="text-sm font-semibold">{labels.notes}</h2>
                 <p class="mt-2 text-sm whitespace-pre-line text-muted-foreground">
                     {invoice.notes}
                 </p>
@@ -208,17 +213,17 @@
 
         <dl class="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div class="flex items-center justify-between gap-6">
-                <dt class="text-muted-foreground">Subtotal</dt>
+                <dt class="text-muted-foreground">{labels.subtotal}</dt>
                 <dd class="tabular-nums">{formatMoney(invoice.subtotal)}</dd>
             </div>
             <div class="flex items-center justify-between gap-6">
-                <dt class="text-muted-foreground">Tax</dt>
+                <dt class="text-muted-foreground">{labels.tax}</dt>
                 <dd class="tabular-nums">{formatMoney(invoice.tax_amount)}</dd>
             </div>
             <div
                 class="flex items-center justify-between gap-6 border-t border-border pt-2 font-semibold"
             >
-                <dt>Total</dt>
+                <dt>{labels.total}</dt>
                 <dd class="tabular-nums">{formatMoney(invoice.total_amount)}</dd>
             </div>
         </dl>
@@ -228,7 +233,7 @@
         <Button variant="ghost" asChild>
             {#snippet children(props)}
                 <Link {...props} href={index().url} class={props.class}>
-                    Back to invoices
+                    {labels.back_to_invoice}
                 </Link>
             {/snippet}
         </Button>

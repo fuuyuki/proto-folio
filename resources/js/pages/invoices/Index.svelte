@@ -47,6 +47,10 @@
         paid: 'default',
     };
 
+    function statusLabel(status: InvoiceStatus): string {
+        return statuses.find((item) => item.value === status)?.label ?? status;
+    }
+
     function filterByStatus(event: Event): void {
         const value = (event.currentTarget as HTMLSelectElement).value;
 
@@ -139,7 +143,7 @@
                             </td>
                             <td class="px-4 py-3">
                                 <Badge variant={badgeVariant[invoice.status]}>
-                                    {invoice.status}
+                                    {statusLabel(invoice.status)}
                                 </Badge>
                             </td>
                             <td class="px-4 py-3 text-right tabular-nums">

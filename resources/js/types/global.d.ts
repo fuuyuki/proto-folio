@@ -23,6 +23,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             currency: CurrencyConfig;
+            locale: string;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

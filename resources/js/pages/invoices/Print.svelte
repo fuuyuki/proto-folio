@@ -1,5 +1,6 @@
 <script lang="ts">
     import Printer from '@lucide/svelte/icons/printer';
+    import { page } from '@inertiajs/svelte';
     import { onMount } from 'svelte';
     import AppHead from '@/components/AppHead.svelte';
     import { formatMoney } from '@/lib/currency';
@@ -10,10 +11,12 @@
         invoice,
         items,
         company,
+        labels,
     }: {
         invoice: Invoice;
         items: InvoiceLineOutput[];
         company: string;
+        labels: Record<string, string>;
     } = $props();
 
     onMount(() => {
@@ -27,7 +30,7 @@
             return '—';
         }
 
-        return new Date(value).toLocaleDateString('en-GB', {
+        return new Date(value).toLocaleDateString(page.props.locale, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -42,48 +45,48 @@
         const rate = Number.parseFloat(item.tax_rate);
         const base = `${formatQuantity(item.quantity)} x ${formatMoney(item.unit_price)}`;
 
-        return rate > 0 ? `${base} · tax ${rate}%` : base;
+        return rate > 0 ? `${base} · ${labels.tax} ${rate}%` : base;
     }
 </script>
 
-<AppHead title={`Receipt ${invoice.number}`} />
+<AppHead title={`${labels.receipt_title} ${invoice.number}`} />
 
 <div class="toolbar">
     <button type="button" class="toolbar-button" onclick={() => window.print()}>
         <Printer class="size-4" />
-        Print
+        {labels.print}
     </button>
 
     <a class="toolbar-button" href={show(invoice.id).url}>
-        Back to invoice
+        {labels.back_to_invoice}
     </a>
 </div>
 
 <article class="receipt">
     <p class="shop">{company}</p>
-    <p class="center muted">INVOICE</p>
+    <p class="center muted">{labels.receipt_title}</p>
     <p class="center number">{invoice.number}</p>
 
     <div class="rule"></div>
 
     <div class="row">
-        <span>Date</span>
+        <span>{labels.date}</span>
         <span>{formatDate(invoice.issue_date)}</span>
     </div>
     {#if invoice.due_date}
         <div class="row">
-            <span>Due</span>
+            <span>{labels.due_date}</span>
             <span>{formatDate(invoice.due_date)}</span>
         </div>
     {/if}
     <div class="row">
-        <span>Status</span>
+        <span>{labels.status}</span>
         <span class="upper">{invoice.status}</span>
     </div>
 
     <div class="rule"></div>
 
-    <p class="muted">Billed to</p>
+    <p class="muted">{labels.billed_to}</p>
     <p class="strong">{invoice.customer?.name ?? '—'}</p>
     {#if invoice.customer?.phone}
         <p>{invoice.customer.phone}</p>
@@ -107,15 +110,15 @@
     <div class="rule"></div>
 
     <div class="row">
-        <span>Subtotal</span>
+        <span>{labels.subtotal}</span>
         <span>{formatMoney(invoice.subtotal)}</span>
     </div>
     <div class="row">
-        <span>Tax</span>
+        <span>{labels.tax}</span>
         <span>{formatMoney(invoice.tax_amount)}</span>
     </div>
     <div class="row total">
-        <span>TOTAL</span>
+        <span>{labels.total}</span>
         <span>{formatMoney(invoice.total_amount)}</span>
     </div>
 
@@ -125,7 +128,7 @@
     {/if}
 
     <div class="rule"></div>
-    <p class="center muted">Thank you</p>
+    <p class="center muted">{labels.thank_you}</p>
 
     <!-- Paper feed so the tear bar / cutter clears the printed text. -->
     <div class="feed" aria-hidden="true"></div>
