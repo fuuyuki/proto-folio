@@ -86,6 +86,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | The languages an administrator can pick from in the localization
+    | settings. Each key maps to a directory under "lang/".
+    |
+    */
+
+    'supported_locales' => [
+        'en' => 'English',
+        'id' => 'Bahasa Indonesia',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |
