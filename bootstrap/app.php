@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // The app is only reachable through the reverse proxy (host nginx or the
+        // web container), so honour X-Forwarded-* headers for URLs and secure cookies.
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             HandleAppearance::class,
             SetLocale::class,

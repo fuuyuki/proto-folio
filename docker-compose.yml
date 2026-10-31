@@ -52,7 +52,7 @@ services:
     command: ["nginx", "-g", "daemon off;"]
 
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:80"
 
     volumes:
       - storage:/var/www/html/storage:ro
