@@ -82,6 +82,25 @@
                 <InputError message={errors.password_confirmation} />
             </div>
 
+            <div class="grid gap-2">
+                <Label for="registration_code">Registration code</Label>
+                <Input
+                    id="registration_code"
+                    type="text"
+                    required
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    name="registration_code"
+                    placeholder="123456"
+                    maxlength={6}
+                    pattern="[0-9]{6}"
+                />
+                <p class="text-xs text-muted-foreground">
+                    Enter the current 6-digit code from your authenticator app.
+                </p>
+                <InputError message={errors.registration_code} />
+            </div>
+
             <Button
                 type="submit"
                 class="mt-2 w-full"
