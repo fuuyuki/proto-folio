@@ -22,7 +22,7 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             ...$this->profileRules(),
-            'registration_code' => ['required', 'string', new ValidRegistrationCode],
+            'registration_code' => ['required', 'string', 'digits:6', new ValidRegistrationCode],
             'password' => $this->passwordRules(),
         ])->validate();
 

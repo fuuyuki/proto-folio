@@ -93,7 +93,12 @@
                     name="registration_code"
                     placeholder="123456"
                     maxlength={6}
-                    pattern="[0-9]{6}"
+                    oninput={(event) => {
+                        const input = event.currentTarget;
+                        input.value = input.value
+                            .replace(/\D/g, '')
+                            .slice(0, 6);
+                    }}
                 />
                 <p class="text-xs text-muted-foreground">
                     Enter the current 6-digit code from your authenticator app.
