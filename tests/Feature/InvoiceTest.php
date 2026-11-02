@@ -142,7 +142,8 @@ test('the receipt page exposes the invoice for 58mm printing', function () {
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('invoices/Print')
-            ->where('company', config('app.name'))
+            ->where('business.name', config('app.name'))
+            ->where('business.address', null)
             ->where('invoice.number', $invoice->number)
             ->has('items', 2)
             ->has('items.0.description')

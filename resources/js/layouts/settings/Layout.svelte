@@ -7,6 +7,7 @@
     import { currentUrlState } from '@/lib/currentUrl.svelte';
     import { toUrl } from '@/lib/utils';
     import { edit as editAppearance } from '@/routes/appearance';
+    import { edit as editBusiness } from '@/routes/business';
     import { edit as editLocalization } from '@/routes/localization';
     import { edit as editProfile } from '@/routes/profile';
     import { edit as editSecurity } from '@/routes/security';
@@ -19,6 +20,10 @@
     } = $props();
 
     const sidebarNavItems: NavItem[] = [
+        {
+            title: 'Business',
+            href: editBusiness(),
+        },
         {
             title: 'Profile',
             href: editProfile(),

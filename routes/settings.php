@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\BusinessController;
 use App\Http\Controllers\Settings\LocalizationController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
@@ -31,6 +32,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::put('settings/localization', [LocalizationController::class, 'update'])
         ->name('localization.update');
+
+    Route::get('settings/business', [BusinessController::class, 'edit'])
+        ->name('business.edit');
+
+    Route::put('settings/business', [BusinessController::class, 'update'])
+        ->name('business.update');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {

@@ -11,6 +11,11 @@ export type Customer = {
 
 export type ProductType = 'product' | 'service';
 
+export type BusinessProfile = {
+    name: string;
+    address: string | null;
+};
+
 export type CurrencyConfig = {
     code: string;
     symbol: string;

@@ -5,17 +5,17 @@
     import AppHead from '@/components/AppHead.svelte';
     import { formatMoney } from '@/lib/currency';
     import { show } from '@/routes/invoices';
-    import type { Invoice, InvoiceLineOutput } from '@/types';
+    import type { BusinessProfile, Invoice, InvoiceLineOutput } from '@/types';
 
     let {
         invoice,
         items,
-        company,
+        business,
         labels,
     }: {
         invoice: Invoice;
         items: InvoiceLineOutput[];
-        company: string;
+        business: BusinessProfile;
         labels: Record<string, string>;
     } = $props();
 
@@ -63,7 +63,10 @@
 </div>
 
 <article class="receipt">
-    <p class="shop">{company}</p>
+    <p class="shop">{business.name}</p>
+    {#if business.address}
+        <p class="center muted address">{business.address}</p>
+    {/if}
     <p class="center muted">{labels.receipt_title}</p>
     <p class="center number">{invoice.number}</p>
 
@@ -194,6 +197,11 @@
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+    }
+
+    .address {
+        white-space: pre-line;
+        word-break: break-word;
     }
 
     .number {

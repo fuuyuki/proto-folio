@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
+use App\Support\BusinessProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -166,7 +167,7 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'items' => $this->presentItems($invoice),
             'labels' => $this->invoiceLabels(),
-            'company' => config('app.name'),
+            'business' => BusinessProfile::toArray(),
         ]);
     }
 
