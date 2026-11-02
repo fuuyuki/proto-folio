@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\ProductType;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int $id
@@ -23,16 +25,25 @@ use Illuminate\Support\Carbon;
  * @property string $price
  * @property string $cost_price
  * @property string|null $description
+ * @property string|null $image_path
+ * @property string|null $image_url
  * @property bool $track_stock
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['category_id', 'unit_id', 'tax_rate_id', 'name', 'sku', 'barcode', 'type', 'price', 'cost_price', 'description', 'track_stock', 'is_active'])]
+#[Fillable(['category_id', 'unit_id', 'tax_rate_id', 'name', 'sku', 'barcode', 'type', 'price', 'cost_price', 'description', 'image_path', 'track_stock', 'is_active'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['image_url'];
 
     /**
      * Get the attributes that should be cast.
@@ -48,6 +59,18 @@ class Product extends Model
             'track_stock' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * The public URL of the product photo, if one was uploaded.
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::get(fn (): ?string => filled($this->image_path)
+            ? Storage::disk('public')->url($this->image_path)
+            : null);
     }
 
     /**

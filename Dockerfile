@@ -61,9 +61,12 @@ RUN npm install --no-audit --no-fund \
 FROM php:8.3-fpm-alpine AS runtime
 
 RUN apk add --no-cache nginx su-exec libpq icu-libs libzip libcurl \
+        libpng libjpeg-turbo freetype libwebp \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS postgresql-dev libzip-dev icu-dev curl-dev \
-    && docker-php-ext-install -j"$(nproc)" pdo_pgsql bcmath intl zip opcache pcntl curl \
+        libpng-dev libjpeg-turbo-dev freetype-dev libwebp-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql bcmath intl zip opcache pcntl curl gd exif \
     && apk del .build-deps
 
 WORKDIR /var/www/html

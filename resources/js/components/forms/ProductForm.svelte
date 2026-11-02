@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Form, Link } from '@inertiajs/svelte';
+    import ImageIcon from '@lucide/svelte/icons/image';
     import { untrack } from 'svelte';
     import InputError from '@/components/InputError.svelte';
     import { Button } from '@/components/ui/button';
@@ -36,11 +37,103 @@
 
     let type = $state(untrack(() => product?.type ?? 'product'));
     const tracksStock = $derived(type !== 'service');
+
+    let filePreview = $state<string | null>(null);
+    let removeImage = $state(false);
+
+    const existingImage = untrack(() => product?.image_url ?? null);
+    const preview = $derived(removeImage ? null : (filePreview ?? existingImage));
+
+    function handleFileChange(event: Event): void {
+        const file = (event.currentTarget as HTMLInputElement).files?.[0] ?? null;
+
+        if (!file) {
+            filePreview = null;
+
+            return;
+        }
+
+        removeImage = false;
+        filePreview = URL.createObjectURL(file);
+    }
+
+    $effect(() => {
+        const url = filePreview;
+
+        return () => {
+            if (url) {
+                URL.revokeObjectURL(url);
+            }
+        };
+    });
 </script>
 
-<Form {action} {method} options={{ preserveScroll: true }}>
+<Form
+    {action}
+    method={method === 'put' ? 'post' : method}
+    options={{ preserveScroll: true }}
+>
     {#snippet children({ errors, processing })}
+        {#if method === 'put'}
+            <!-- PHP cannot parse multipart bodies on PUT, so spoof the verb. -->
+            <input type="hidden" name="_method" value="put" />
+        {/if}
+
         <div class="space-y-6">
+            <section class="rounded-xl border border-border bg-card p-6">
+                <div class="mb-5 space-y-0.5">
+                    <h2 class="text-sm font-semibold">Photo</h2>
+                    <p class="text-xs text-muted-foreground">
+                        JPG, PNG or WebP up to 5 MB. Photos are resized to 1024
+                        px and compressed automatically.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-start gap-4">
+                    <div
+                        class="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted"
+                    >
+                        {#if preview}
+                            <img
+                                src={preview}
+                                alt="Preview"
+                                class="size-full object-cover"
+                            />
+                        {:else}
+                            <ImageIcon class="size-6 text-muted-foreground" />
+                        {/if}
+                    </div>
+
+                    <div class="grid min-w-0 flex-1 gap-2">
+                        <Label for="image">Product photo</Label>
+                        <input
+                            id="image"
+                            name="image"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onchange={handleFileChange}
+                            class="block w-full cursor-pointer rounded-md border border-input bg-transparent px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-muted file:px-3 file:py-1.5 file:text-xs file:font-medium"
+                        />
+                        <InputError message={errors.image} />
+
+                        {#if existingImage && !filePreview}
+                            <label
+                                class="flex items-center gap-2 text-xs text-muted-foreground"
+                            >
+                                <input
+                                    type="checkbox"
+                                    name="remove_image"
+                                    value="1"
+                                    bind:checked={removeImage}
+                                    class="size-4 rounded border-input accent-primary"
+                                />
+                                Remove the current photo
+                            </label>
+                        {/if}
+                    </div>
+                </div>
+            </section>
+
             <section class="rounded-xl border border-border bg-card p-6">
                 <div class="mb-5 space-y-0.5">
                     <h2 class="text-sm font-semibold">Product details</h2>

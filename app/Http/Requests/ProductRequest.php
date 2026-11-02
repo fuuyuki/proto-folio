@@ -26,6 +26,7 @@ class ProductRequest extends FormRequest
         $this->merge([
             'track_stock' => $this->boolean('track_stock'),
             'is_active' => $this->boolean('is_active'),
+            'remove_image' => $this->boolean('remove_image'),
         ]);
     }
 
@@ -63,6 +64,14 @@ class ProductRequest extends FormRequest
             'unit_id' => ['nullable', 'integer', Rule::exists('units', 'id')],
             'tax_rate_id' => ['nullable', 'integer', Rule::exists('tax_rates', 'id')],
             'description' => ['nullable', 'string', 'max:5000'],
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+                'dimensions:max_width=6000,max_height=6000',
+            ],
+            'remove_image' => ['boolean'],
             'track_stock' => ['boolean'],
             'is_active' => ['boolean'],
         ];

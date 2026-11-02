@@ -89,14 +89,36 @@
                     {#each products.data as product (product.id)}
                         <tr class="hover:bg-muted/40">
                             <td class="px-4 py-3">
-                                <div class="font-medium">{product.name}</div>
-                                {#if product.description}
-                                    <div
-                                        class="line-clamp-1 text-xs text-muted-foreground"
-                                    >
-                                        {product.description}
+                                <div class="flex items-center gap-3">
+                                    {#if product.image_url}
+                                        <img
+                                            src={product.image_url}
+                                            alt={product.name}
+                                            loading="lazy"
+                                            decoding="async"
+                                            class="size-10 shrink-0 rounded-md border border-border object-cover"
+                                        />
+                                    {:else}
+                                        <div
+                                            class="flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"
+                                        >
+                                            <Package class="size-4" />
+                                        </div>
+                                    {/if}
+
+                                    <div class="min-w-0">
+                                        <div class="font-medium">
+                                            {product.name}
+                                        </div>
+                                        {#if product.description}
+                                            <div
+                                                class="line-clamp-1 text-xs text-muted-foreground"
+                                            >
+                                                {product.description}
+                                            </div>
+                                        {/if}
                                     </div>
-                                {/if}
+                                </div>
                             </td>
                             <td
                                 class="px-4 py-3 font-mono text-xs text-muted-foreground"

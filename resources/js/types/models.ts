@@ -26,6 +26,8 @@ export type Product = {
     price: string;
     cost_price: string;
     description: string | null;
+    image_path: string | null;
+    image_url: string | null;
     category_id: number | null;
     unit_id: number | null;
     tax_rate_id: number | null;

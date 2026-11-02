@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\NumberSequences\GenerateSequenceNumber;
+use App\Actions\Products\StoreProductImage;
 use App\Enums\ProductType;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
@@ -12,6 +13,7 @@ use App\Models\Unit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -52,13 +54,20 @@ class ProductController extends Controller
     /**
      * Store a newly created product.
      */
-    public function store(ProductRequest $request, GenerateSequenceNumber $generateNumber): RedirectResponse
+    public function store(ProductRequest $request, GenerateSequenceNumber $generateNumber, StoreProductImage $storeImage): RedirectResponse
     {
         $data = $request->validated();
+        unset($data['image'], $data['remove_image']);
 
         $data['sku'] = filled($data['sku'] ?? null)
             ? $data['sku']
             : $generateNumber->handle('product');
+
+        $image = $request->file('image');
+
+        if ($image instanceof UploadedFile) {
+            $data['image_path'] = $storeImage->handle($image);
+        }
 
         Product::create($this->normalize($data));
 
@@ -81,15 +90,29 @@ class ProductController extends Controller
     /**
      * Update the given product.
      */
-    public function update(ProductRequest $request, Product $product): RedirectResponse
+    public function update(ProductRequest $request, Product $product, StoreProductImage $storeImage): RedirectResponse
     {
         $data = $request->validated();
+        unset($data['image'], $data['remove_image']);
 
         if (blank($data['sku'] ?? null)) {
             $data['sku'] = $product->sku;
         }
 
+        $image = $request->file('image');
+        $previousImage = $product->image_path;
+
+        if ($image instanceof UploadedFile) {
+            $data['image_path'] = $storeImage->handle($image);
+        } elseif ($request->boolean('remove_image')) {
+            $data['image_path'] = null;
+        }
+
         $product->update($this->normalize($data));
+
+        if (array_key_exists('image_path', $data) && $previousImage !== $data['image_path']) {
+            $storeImage->delete($previousImage);
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product updated.')]);
 
@@ -99,8 +122,10 @@ class ProductController extends Controller
     /**
      * Delete the given product.
      */
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Product $product, StoreProductImage $storeImage): RedirectResponse
     {
+        $storeImage->delete($product->image_path);
+
         $product->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Product deleted.')]);
