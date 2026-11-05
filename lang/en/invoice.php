@@ -13,6 +13,7 @@ return [
     'tax' => 'Tax',
     'amount' => 'Amount',
     'subtotal' => 'Subtotal',
+    'discount' => 'Discount',
     'total' => 'TOTAL',
     'notes' => 'Notes',
     'thank_you' => 'Thank you',

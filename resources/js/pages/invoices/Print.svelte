@@ -116,6 +116,12 @@
         <span>{labels.subtotal}</span>
         <span>{formatMoney(invoice.subtotal)}</span>
     </div>
+    {#if Number.parseFloat(invoice.discount_amount) > 0}
+        <div class="row">
+            <span>{labels.discount}</span>
+            <span>-{formatMoney(invoice.discount_amount)}</span>
+        </div>
+    {/if}
     <div class="row">
         <span>{labels.tax}</span>
         <span>{formatMoney(invoice.tax_amount)}</span>

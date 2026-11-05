@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -148,5 +149,107 @@ test('the receipt page exposes the invoice for 58mm printing', function () {
             ->has('items', 2)
             ->has('items.0.description')
             ->has('items.0.line_total')
+            ->where('labels.discount', 'Discount')
         );
+});
+
+test('a percentage discount is applied to the subtotal before tax', function () {
+    $customer = Customer::factory()->create();
+
+    $this->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'status' => 'draft',
+        'issue_date' => '2026-10-29',
+        'discount_type' => 'percent',
+        'discount_value' => 10,
+        'items' => [
+            ['product_id' => null, 'quantity' => 2, 'unit_price' => 500, 'tax_rate' => 11],
+        ],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->firstOrFail();
+
+    expect($invoice->subtotal)->toBe('1000.00')
+        ->and($invoice->discount_type)->toBe(DiscountType::Percent)
+        ->and($invoice->discount_value)->toBe('10.00')
+        ->and($invoice->discount_amount)->toBe('100.00')
+        ->and($invoice->tax_amount)->toBe('99.00')
+        ->and($invoice->total_amount)->toBe('999.00');
+});
+
+test('a fixed discount never exceeds the subtotal', function () {
+    $customer = Customer::factory()->create();
+
+    $this->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'status' => 'draft',
+        'issue_date' => '2026-10-29',
+        'discount_type' => 'amount',
+        'discount_value' => 500,
+        'items' => [
+            ['product_id' => null, 'quantity' => 1, 'unit_price' => 250, 'tax_rate' => 11],
+        ],
+    ])->assertRedirect();
+
+    $invoice = Invoice::query()->firstOrFail();
+
+    expect($invoice->discount_amount)->toBe('250.00')
+        ->and($invoice->tax_amount)->toBe('0.00')
+        ->and($invoice->total_amount)->toBe('0.00');
+});
+
+test('a percentage discount cannot exceed one hundred percent', function () {
+    $customer = Customer::factory()->create();
+
+    $this->post(route('invoices.store'), [
+        'customer_id' => $customer->id,
+        'status' => 'draft',
+        'issue_date' => '2026-10-29',
+        'discount_type' => 'percent',
+        'discount_value' => 120,
+        'items' => [
+            ['product_id' => null, 'quantity' => 1, 'unit_price' => 100, 'tax_rate' => 0],
+        ],
+    ])->assertSessionHasErrors('discount_value');
+
+    expect(Invoice::query()->count())->toBe(0);
+});
+
+test('updating an invoice recalculates and can clear the discount', function () {
+    $invoice = Invoice::factory()->create([
+        'discount_type' => 'percent',
+        'discount_value' => 10,
+        'discount_amount' => 100,
+    ]);
+    $customer = Customer::factory()->create();
+
+    $payload = [
+        'customer_id' => $customer->id,
+        'status' => 'draft',
+        'issue_date' => '2026-10-29',
+        'discount_type' => 'amount',
+        'discount_value' => 50,
+        'items' => [
+            ['product_id' => null, 'quantity' => 1, 'unit_price' => 200, 'tax_rate' => 0],
+        ],
+    ];
+
+    $this->put(route('invoices.update', $invoice), $payload)->assertRedirect();
+
+    $invoice->refresh();
+
+    expect($invoice->discount_amount)->toBe('50.00')
+        ->and($invoice->total_amount)->toBe('150.00');
+
+    $this->put(route('invoices.update', $invoice), [
+        ...$payload,
+        'discount_type' => 'none',
+    ])->assertRedirect();
+
+    $invoice->refresh();
+
+    expect($invoice->discount_type)->toBe(DiscountType::None)
+        ->and($invoice->discount_value)->toBe('0.00')
+        ->and($invoice->discount_amount)->toBe('0.00')
+        ->and($invoice->total_amount)->toBe('200.00');
 });

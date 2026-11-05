@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,6 +19,17 @@ class InvoiceRequest extends FormRequest
     }
 
     /**
+     * Default the discount fields so older payloads keep working.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'discount_type' => $this->input('discount_type') ?? DiscountType::None->value,
+            'discount_value' => $this->input('discount_value') ?? 0,
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -29,6 +41,15 @@ class InvoiceRequest extends FormRequest
             'status' => ['required', Rule::enum(InvoiceStatus::class)],
             'issue_date' => ['required', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:issue_date'],
+            'discount_type' => ['required', Rule::enum(DiscountType::class)],
+            'discount_value' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                $this->input('discount_type') === DiscountType::Percent->value
+                    ? 'max:100'
+                    : 'max:9999999999.99',
+            ],
             'notes' => ['nullable', 'string', 'max:2000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['nullable', 'integer', Rule::exists('products', 'id')],

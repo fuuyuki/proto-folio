@@ -12,6 +12,7 @@
     import { formatMoney } from '@/lib/currency';
     import type {
         CustomerOption,
+        DiscountType,
         Invoice,
         InvoiceLine,
         InvoiceProductOption,
@@ -66,19 +67,52 @@
         untrack(() => invoice?.status ?? 'draft'),
     );
 
+    let discountType = $state<DiscountType>(
+        untrack(() => invoice?.discount_type ?? 'none'),
+    );
+    let discountValue = $state<string>(
+        untrack(() => invoice?.discount_value ?? '0'),
+    );
+
     const today = new Date().toLocaleDateString('sv-SE');
 
     const subtotal = $derived(
         lines.reduce((sum, line) => sum + lineAmount(line), 0),
     );
+    const discountAmount = $derived.by(() => {
+        const value = Math.max(parseRate(discountValue), 0);
+
+        if (discountType === 'percent') {
+            return roundMoney((subtotal * Math.min(value, 100)) / 100);
+        }
+
+        if (discountType === 'amount') {
+            return roundMoney(Math.min(value, subtotal));
+        }
+
+        return 0;
+    });
+    const discountedRatio = $derived(
+        subtotal > 0 ? (subtotal - discountAmount) / subtotal : 0,
+    );
     const taxAmount = $derived(
         lines.reduce(
             (sum, line) =>
-                sum + (lineAmount(line) * parseRate(line.tax_rate)) / 100,
+                sum +
+                roundMoney(
+                    (lineAmount(line) *
+                        discountedRatio *
+                        parseRate(line.tax_rate)) /
+                        100,
+                ),
             0,
         ),
     );
-    const total = $derived(subtotal + taxAmount);
+    const total = $derived(roundMoney(subtotal - discountAmount + taxAmount));
+
+    function roundMoney(value: number): number {
+        return Math.round(value * 100) / 100;
+    }
 
     function parseRate(value: string): number {
         const rate = Number.parseFloat(value);
@@ -333,12 +367,75 @@
 
                 <InputError message={errors.items} class="mt-3" />
 
-                <div class="mt-6 flex justify-end">
+                <div
+                    class="mt-6 flex flex-col gap-6 border-t border-border pt-4 md:flex-row md:items-start md:justify-end md:gap-10"
+                >
+                    <div class="grid w-full max-w-xs gap-2">
+                        <Label
+                            for="discount_type"
+                            class="text-xs text-muted-foreground"
+                        >
+                            Discount
+                        </Label>
+
+                        <div class="flex gap-2">
+                            <NativeSelect
+                                id="discount_type"
+                                name="discount_type"
+                                value={discountType}
+                                onchange={(event) =>
+                                    (discountType = event.currentTarget
+                                        .value as DiscountType)}
+                            >
+                                <option value="none">No discount</option>
+                                <option value="percent">Percentage</option>
+                                <option value="amount">Amount</option>
+                            </NativeSelect>
+
+                            <Input
+                                id="discount_value"
+                                name="discount_value"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max={discountType === 'percent'
+                                    ? 100
+                                    : undefined}
+                                bind:value={discountValue}
+                                disabled={discountType === 'none'}
+                                class="w-28 shrink-0"
+                            />
+                        </div>
+
+                        {#if discountType !== 'none'}
+                            <p class="text-xs text-muted-foreground">
+                                {discountType === 'percent'
+                                    ? 'Percentage taken off the subtotal, before tax.'
+                                    : 'Fixed amount taken off the subtotal, before tax.'}
+                            </p>
+                        {/if}
+
+                        <InputError message={errors.discount_type} />
+                        <InputError message={errors.discount_value} />
+                    </div>
+
                     <dl class="w-full max-w-xs space-y-1.5 text-sm">
                         <div class="flex items-center justify-between gap-6">
                             <dt class="text-muted-foreground">Subtotal</dt>
                             <dd class="tabular-nums">{formatMoney(subtotal)}</dd>
                         </div>
+                        {#if discountAmount > 0}
+                            <div class="flex items-center justify-between gap-6">
+                                <dt class="text-muted-foreground">
+                                    Discount{discountType === 'percent'
+                                        ? ` (${parseRate(discountValue)}%)`
+                                        : ''}
+                                </dt>
+                                <dd class="tabular-nums">
+                                    -{formatMoney(discountAmount)}
+                                </dd>
+                            </div>
+                        {/if}
                         <div class="flex items-center justify-between gap-6">
                             <dt class="text-muted-foreground">Tax</dt>
                             <dd class="tabular-nums">{formatMoney(taxAmount)}</dd>

@@ -13,6 +13,7 @@ return [
     'tax' => 'Pajak',
     'amount' => 'Jumlah',
     'subtotal' => 'Subtotal',
+    'discount' => 'Diskon',
     'total' => 'TOTAL',
     'notes' => 'Catatan',
     'thank_you' => 'Terima kasih',

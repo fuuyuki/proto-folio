@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\NumberSequences\GenerateSequenceNumber;
+use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Customer;
@@ -65,14 +66,16 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
         $items = $this->normalizeItems($data['items']);
+        $discountType = DiscountType::from($data['discount_type']);
+        $discountValue = (float) ($data['discount_value'] ?? 0);
 
-        unset($data['items']);
+        unset($data['items'], $data['discount_type'], $data['discount_value']);
 
-        $invoice = DB::transaction(function () use ($data, $items, $generateNumber): Invoice {
+        $invoice = DB::transaction(function () use ($data, $items, $generateNumber, $discountType, $discountValue): Invoice {
             $invoice = Invoice::create([
                 ...$data,
                 'number' => $generateNumber->handle('invoice'),
-                ...$this->totals($items),
+                ...$this->totals($items, $discountType, $discountValue),
             ]);
 
             $invoice->items()->createMany($items);
@@ -126,13 +129,15 @@ class InvoiceController extends Controller
     {
         $data = $request->validated();
         $items = $this->normalizeItems($data['items']);
+        $discountType = DiscountType::from($data['discount_type']);
+        $discountValue = (float) ($data['discount_value'] ?? 0);
 
-        unset($data['items']);
+        unset($data['items'], $data['discount_type'], $data['discount_value']);
 
-        DB::transaction(function () use ($invoice, $data, $items): void {
+        DB::transaction(function () use ($invoice, $data, $items, $discountType, $discountValue): void {
             $invoice->update([
                 ...$data,
-                ...$this->totals($items),
+                ...$this->totals($items, $discountType, $discountValue),
             ]);
 
             $invoice->items()->delete();
@@ -188,28 +193,54 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Calculate the invoice totals from its line items.
+     * Calculate the invoice totals from its line items and discount.
+     *
+     * The discount is taken off the subtotal before tax, so the tax follows
+     * the discounted base proportionally.
      *
      * @param  array<int, array<string, mixed>>  $items
-     * @return array{subtotal: float, tax_amount: float, total_amount: float}
+     * @return array{subtotal: float, discount_type: string, discount_value: float, discount_amount: float, tax_amount: float, total_amount: float}
      */
-    private function totals(array $items): array
+    private function totals(array $items, DiscountType $discountType, float $discountValue): array
     {
         $subtotal = 0.0;
+
+        foreach ($items as $item) {
+            $subtotal += round((float) $item['quantity'] * (float) $item['unit_price'], 2);
+        }
+
+        $subtotal = round($subtotal, 2);
+        $discountAmount = $this->discountAmount($subtotal, $discountType, $discountValue);
+        $ratio = $subtotal > 0 ? ($subtotal - $discountAmount) / $subtotal : 0.0;
+
         $taxAmount = 0.0;
 
         foreach ($items as $item) {
             $lineTotal = round((float) $item['quantity'] * (float) $item['unit_price'], 2);
 
-            $subtotal += $lineTotal;
-            $taxAmount += round($lineTotal * (float) $item['tax_rate'] / 100, 2);
+            $taxAmount += round($lineTotal * $ratio * (float) $item['tax_rate'] / 100, 2);
         }
 
         return [
-            'subtotal' => round($subtotal, 2),
+            'subtotal' => $subtotal,
+            'discount_type' => $discountType->value,
+            'discount_value' => $discountType === DiscountType::None ? 0.0 : round($discountValue, 2),
+            'discount_amount' => $discountAmount,
             'tax_amount' => round($taxAmount, 2),
-            'total_amount' => round($subtotal + $taxAmount, 2),
+            'total_amount' => round($subtotal - $discountAmount + $taxAmount, 2),
         ];
+    }
+
+    /**
+     * Resolve the discount amount, never discounting more than the subtotal.
+     */
+    private function discountAmount(float $subtotal, DiscountType $type, float $value): float
+    {
+        return match ($type) {
+            DiscountType::Percent => round($subtotal * min($value, 100) / 100, 2),
+            DiscountType::Amount => round(min($value, $subtotal), 2),
+            DiscountType::None => 0.0,
+        };
     }
 
     /**
@@ -259,6 +290,7 @@ class InvoiceController extends Controller
             'tax' => __('invoice.tax'),
             'amount' => __('invoice.amount'),
             'subtotal' => __('invoice.subtotal'),
+            'discount' => __('invoice.discount'),
             'total' => __('invoice.total'),
             'notes' => __('invoice.notes'),
             'thank_you' => __('invoice.thank_you'),

@@ -49,6 +49,7 @@ test('the receipt and invoice pages use the configured language', function () {
             ->where('labels.billed_to', 'Ditagihkan kepada')
             ->where('labels.total', 'TOTAL')
             ->where('labels.tax', 'Pajak')
+            ->where('labels.discount', 'Diskon')
             ->where('labels.thank_you', 'Terima kasih')
         );
 

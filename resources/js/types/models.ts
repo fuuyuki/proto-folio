@@ -100,6 +100,8 @@ export type TaxRate = {
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid';
 
+export type DiscountType = 'none' | 'percent' | 'amount';
+
 export type Invoice = {
     id: number;
     customer_id: number;
@@ -108,6 +110,9 @@ export type Invoice = {
     issue_date: string;
     due_date: string | null;
     subtotal: string;
+    discount_type: DiscountType;
+    discount_value: string;
+    discount_amount: string;
     tax_amount: string;
     total_amount: string;
     notes: string | null;

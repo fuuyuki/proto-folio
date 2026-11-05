@@ -216,6 +216,14 @@
                 <dt class="text-muted-foreground">{labels.subtotal}</dt>
                 <dd class="tabular-nums">{formatMoney(invoice.subtotal)}</dd>
             </div>
+            {#if Number.parseFloat(invoice.discount_amount) > 0}
+                <div class="flex items-center justify-between gap-6">
+                    <dt class="text-muted-foreground">{labels.discount}</dt>
+                    <dd class="tabular-nums">
+                        -{formatMoney(invoice.discount_amount)}
+                    </dd>
+                </div>
+            {/if}
             <div class="flex items-center justify-between gap-6">
                 <dt class="text-muted-foreground">{labels.tax}</dt>
                 <dd class="tabular-nums">{formatMoney(invoice.tax_amount)}</dd>

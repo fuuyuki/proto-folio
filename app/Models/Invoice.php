@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,13 +20,16 @@ use Illuminate\Support\Carbon;
  * @property Carbon $issue_date
  * @property Carbon|null $due_date
  * @property string $subtotal
+ * @property DiscountType $discount_type
+ * @property string $discount_value
+ * @property string $discount_amount
  * @property string $tax_amount
  * @property string $total_amount
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['customer_id', 'number', 'status', 'issue_date', 'due_date', 'subtotal', 'tax_amount', 'total_amount', 'notes'])]
+#[Fillable(['customer_id', 'number', 'status', 'issue_date', 'due_date', 'subtotal', 'discount_type', 'discount_value', 'discount_amount', 'tax_amount', 'total_amount', 'notes'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
@@ -43,6 +47,9 @@ class Invoice extends Model
             'issue_date' => 'date',
             'due_date' => 'date',
             'subtotal' => 'decimal:2',
+            'discount_type' => DiscountType::class,
+            'discount_value' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
