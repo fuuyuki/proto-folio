@@ -12,7 +12,7 @@ controllers render Svelte pages directly and pass data as props.
 
 | Area | Status |
 | --- | --- |
-| Authentication — login, registration, password reset, 2FA, passkeys | Working (Laravel Fortify starter kit) |
+| Authentication — login, registration, password reset, 2FA | Working (Laravel Fortify starter kit) |
 | Registration gate — a TOTP code is required to create an account | Working |
 | Dashboard | Placeholder |
 | Customers | CRUD |
