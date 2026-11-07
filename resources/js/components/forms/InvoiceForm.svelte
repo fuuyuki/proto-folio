@@ -344,7 +344,9 @@
                                 >
                                     Amount
                                 </span>
-                                <span class="py-2 text-sm tabular-nums">
+                                <span
+                                    class="py-2 font-mono text-sm tabular-nums"
+                                >
                                     {formatMoney(lineAmount(line))}
                                 </span>
                             </div>
@@ -422,7 +424,9 @@
                     <dl class="w-full max-w-xs space-y-1.5 text-sm">
                         <div class="flex items-center justify-between gap-6">
                             <dt class="text-muted-foreground">Subtotal</dt>
-                            <dd class="tabular-nums">{formatMoney(subtotal)}</dd>
+                            <dd class="font-mono tabular-nums">
+                                {formatMoney(subtotal)}
+                            </dd>
                         </div>
                         {#if discountAmount > 0}
                             <div class="flex items-center justify-between gap-6">
@@ -431,20 +435,24 @@
                                         ? ` (${parseRate(discountValue)}%)`
                                         : ''}
                                 </dt>
-                                <dd class="tabular-nums">
+                                <dd class="font-mono tabular-nums text-discount">
                                     -{formatMoney(discountAmount)}
                                 </dd>
                             </div>
                         {/if}
                         <div class="flex items-center justify-between gap-6">
                             <dt class="text-muted-foreground">Tax</dt>
-                            <dd class="tabular-nums">{formatMoney(taxAmount)}</dd>
+                            <dd class="font-mono tabular-nums">
+                                {formatMoney(taxAmount)}
+                            </dd>
                         </div>
                         <div
                             class="flex items-center justify-between gap-6 border-t border-border pt-1.5 font-semibold"
                         >
                             <dt>Total</dt>
-                            <dd class="tabular-nums">{formatMoney(total)}</dd>
+                            <dd class="font-mono tabular-nums">
+                                {formatMoney(total)}
+                            </dd>
                         </div>
                     </dl>
                 </div>
