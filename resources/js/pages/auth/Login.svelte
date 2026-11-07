@@ -19,7 +19,6 @@
     import { register } from '@/routes';
     import { store } from '@/routes/login';
     import { request } from '@/routes/password';
-    import PasskeyVerify from '@/components/PasskeyVerify.svelte';
 
     let {
         status = '',
@@ -37,8 +36,6 @@
         {status}
     </div>
 {/if}
-
-<PasskeyVerify />
 
 <Form
     {...store.form()}

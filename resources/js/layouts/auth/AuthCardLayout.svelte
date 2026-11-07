@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Link } from '@inertiajs/svelte';
     import type { Snippet } from 'svelte';
-    import AppLogoIcon from '@/components/AppLogoIcon.svelte';
     import {
         Card,
         CardContent,
@@ -30,11 +29,7 @@
             href={home()}
             class="flex items-center gap-2 self-center font-medium"
         >
-            <div class="flex h-9 w-9 items-center justify-center">
-                <AppLogoIcon
-                    class="size-9 fill-current text-black dark:text-white"
-                />
-            </div>
+            <img src="/favicon.svg" alt="" class="size-9 dark:invert" />
         </Link>
 
         <div class="flex flex-col gap-6">
