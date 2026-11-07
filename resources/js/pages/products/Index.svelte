@@ -73,7 +73,7 @@
         <div class="overflow-x-auto rounded-xl border border-border bg-card">
             <table class="w-full text-sm">
                 <thead
-                    class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
+                    class="border-b border-border bg-table-head text-left text-xs tracking-wide text-muted-foreground uppercase"
                 >
                     <tr>
                         <th class="px-4 py-3 font-medium">Product</th>
@@ -87,7 +87,7 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                     {#each products.data as product (product.id)}
-                        <tr class="hover:bg-muted/40">
+                        <tr class="hover:bg-row-hover">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     {#if product.image_url}
@@ -139,7 +139,9 @@
                             <td class="px-4 py-3 text-muted-foreground">
                                 {product.category?.name ?? '—'}
                             </td>
-                            <td class="px-4 py-3 text-right tabular-nums">
+                            <td
+                                class="px-4 py-3 text-right font-mono tabular-nums"
+                            >
                                 {formatMoney(product.price)}
                             </td>
                             <td class="px-4 py-3 tabular-nums">

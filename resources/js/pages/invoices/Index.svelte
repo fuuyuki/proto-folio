@@ -19,9 +19,9 @@
     import AppPage from '@/components/AppPage.svelte';
     import ConfirmDeleteButton from '@/components/ConfirmDeleteButton.svelte';
     import EmptyState from '@/components/EmptyState.svelte';
+    import InvoiceStatusBadge from '@/components/InvoiceStatusBadge.svelte';
     import Pagination from '@/components/Pagination.svelte';
     import SearchField from '@/components/SearchField.svelte';
-    import { Badge } from '@/components/ui/badge';
     import { Button } from '@/components/ui/button';
     import { NativeSelect } from '@/components/ui/native-select';
     import { formatMoney } from '@/lib/currency';
@@ -37,15 +37,6 @@
         filters: { search: string; status: string };
         statuses: { value: InvoiceStatus; label: string }[];
     } = $props();
-
-    const badgeVariant: Record<
-        InvoiceStatus,
-        'default' | 'secondary' | 'outline'
-    > = {
-        draft: 'secondary',
-        sent: 'outline',
-        paid: 'default',
-    };
 
     function statusLabel(status: InvoiceStatus): string {
         return statuses.find((item) => item.value === status)?.label ?? status;
@@ -113,7 +104,7 @@
         <div class="overflow-x-auto rounded-xl border border-border bg-card">
             <table class="w-full text-sm">
                 <thead
-                    class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
+                    class="border-b border-border bg-table-head text-left text-xs tracking-wide text-muted-foreground uppercase"
                 >
                     <tr>
                         <th class="px-4 py-3 font-medium">Number</th>
@@ -126,8 +117,8 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                     {#each invoices.data as invoice (invoice.id)}
-                        <tr class="hover:bg-muted/40">
-                            <td class="px-4 py-3 font-medium">
+                        <tr class="hover:bg-row-hover">
+                            <td class="px-4 py-3 font-mono font-medium">
                                 <Link
                                     href={show(invoice.id).url}
                                     class="hover:underline"
@@ -142,11 +133,14 @@
                                 {invoice.issue_date.slice(0, 10)}
                             </td>
                             <td class="px-4 py-3">
-                                <Badge variant={badgeVariant[invoice.status]}>
-                                    {statusLabel(invoice.status)}
-                                </Badge>
+                                <InvoiceStatusBadge
+                                    status={invoice.status}
+                                    label={statusLabel(invoice.status)}
+                                />
                             </td>
-                            <td class="px-4 py-3 text-right tabular-nums">
+                            <td
+                                class="px-4 py-3 text-right font-mono tabular-nums"
+                            >
                                 {formatMoney(invoice.total_amount)}
                             </td>
                             <td class="px-4 py-3">

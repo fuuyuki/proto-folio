@@ -21,7 +21,7 @@
     import AppHead from '@/components/AppHead.svelte';
     import AppPage from '@/components/AppPage.svelte';
     import ConfirmDeleteButton from '@/components/ConfirmDeleteButton.svelte';
-    import { Badge } from '@/components/ui/badge';
+    import InvoiceStatusBadge from '@/components/InvoiceStatusBadge.svelte';
     import { Button } from '@/components/ui/button';
     import { formatMoney } from '@/lib/currency';
     import {
@@ -47,15 +47,6 @@
         labels: Record<string, string>;
         statuses: { value: InvoiceStatus; label: string }[];
     } = $props();
-
-    const badgeVariant: Record<
-        InvoiceStatus,
-        'default' | 'secondary' | 'outline'
-    > = {
-        draft: 'secondary',
-        sent: 'outline',
-        paid: 'default',
-    };
 
     function formatDate(value: string | null): string {
         if (!value) {
@@ -142,9 +133,10 @@
                 <div class="flex items-center justify-between gap-4">
                     <dt class="text-muted-foreground">{labels.status}</dt>
                     <dd>
-                        <Badge variant={badgeVariant[invoice.status]}>
-                            {statusLabel(invoice.status)}
-                        </Badge>
+                        <InvoiceStatusBadge
+                            status={invoice.status}
+                            label={statusLabel(invoice.status)}
+                        />
                     </dd>
                 </div>
                 <div class="flex items-center justify-between gap-4">
@@ -160,7 +152,7 @@
 
         <section class="rounded-xl border border-border bg-card p-6">
             <h2 class="text-sm font-semibold">{labels.total}</h2>
-            <p class="mt-2 text-2xl font-semibold tabular-nums">
+            <p class="mt-2 font-mono text-2xl font-semibold tabular-nums">
                 {formatMoney(invoice.total_amount)}
             </p>
         </section>
@@ -169,7 +161,7 @@
     <div class="overflow-x-auto rounded-xl border border-border bg-card">
         <table class="w-full text-sm">
             <thead
-                class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
+                class="border-b border-border bg-table-head text-left text-xs tracking-wide text-muted-foreground uppercase"
             >
                 <tr>
                     <th class="px-4 py-3 font-medium">{labels.item}</th>
@@ -183,16 +175,16 @@
                 {#each items as item (item.id)}
                     <tr>
                         <td class="px-4 py-3">{item.description}</td>
-                        <td class="px-4 py-3 text-right tabular-nums">
+                        <td class="px-4 py-3 text-right font-mono tabular-nums">
                             {formatQuantity(item.quantity)}
                         </td>
-                        <td class="px-4 py-3 text-right tabular-nums">
+                        <td class="px-4 py-3 text-right font-mono tabular-nums">
                             {formatMoney(item.unit_price)}
                         </td>
-                        <td class="px-4 py-3 text-right tabular-nums">
+                        <td class="px-4 py-3 text-right font-mono tabular-nums">
                             {formatQuantity(item.tax_rate)}%
                         </td>
-                        <td class="px-4 py-3 text-right tabular-nums">
+                        <td class="px-4 py-3 text-right font-mono tabular-nums">
                             {formatMoney(item.line_total)}
                         </td>
                     </tr>
@@ -214,25 +206,31 @@
         <dl class="ml-auto w-full max-w-xs space-y-2 text-sm">
             <div class="flex items-center justify-between gap-6">
                 <dt class="text-muted-foreground">{labels.subtotal}</dt>
-                <dd class="tabular-nums">{formatMoney(invoice.subtotal)}</dd>
+                <dd class="font-mono tabular-nums">
+                    {formatMoney(invoice.subtotal)}
+                </dd>
             </div>
             {#if Number.parseFloat(invoice.discount_amount) > 0}
                 <div class="flex items-center justify-between gap-6">
                     <dt class="text-muted-foreground">{labels.discount}</dt>
-                    <dd class="tabular-nums">
+                    <dd class="font-mono tabular-nums text-discount">
                         -{formatMoney(invoice.discount_amount)}
                     </dd>
                 </div>
             {/if}
             <div class="flex items-center justify-between gap-6">
                 <dt class="text-muted-foreground">{labels.tax}</dt>
-                <dd class="tabular-nums">{formatMoney(invoice.tax_amount)}</dd>
+                <dd class="font-mono tabular-nums">
+                    {formatMoney(invoice.tax_amount)}
+                </dd>
             </div>
             <div
                 class="flex items-center justify-between gap-6 border-t border-border pt-2 font-semibold"
             >
                 <dt>{labels.total}</dt>
-                <dd class="tabular-nums">{formatMoney(invoice.total_amount)}</dd>
+                <dd class="font-mono tabular-nums">
+                    {formatMoney(invoice.total_amount)}
+                </dd>
             </div>
         </dl>
     </div>

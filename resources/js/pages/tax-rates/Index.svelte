@@ -55,7 +55,7 @@
         <div class="overflow-x-auto rounded-xl border border-border bg-card">
             <table class="w-full text-sm">
                 <thead
-                    class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
+                    class="border-b border-border bg-table-head text-left text-xs tracking-wide text-muted-foreground uppercase"
                 >
                     <tr>
                         <th class="px-4 py-3 font-medium">Name</th>
@@ -68,9 +68,9 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                     {#each taxRates.data as taxRate (taxRate.id)}
-                        <tr class="hover:bg-muted/40">
+                        <tr class="hover:bg-row-hover">
                             <td class="px-4 py-3 font-medium">{taxRate.name}</td>
-                            <td class="px-4 py-3 text-right tabular-nums">
+                            <td class="px-4 py-3 text-right font-mono tabular-nums">
                                 {Number.parseFloat(taxRate.rate)}%
                             </td>
                             <td class="px-4 py-3 text-muted-foreground">

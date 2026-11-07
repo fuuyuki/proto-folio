@@ -73,7 +73,7 @@
         <div class="overflow-x-auto rounded-xl border border-border bg-card">
             <table class="w-full text-sm">
                 <thead
-                    class="border-b border-border bg-muted/50 text-left text-xs tracking-wide text-muted-foreground uppercase"
+                    class="border-b border-border bg-table-head text-left text-xs tracking-wide text-muted-foreground uppercase"
                 >
                     <tr>
                         <th class="px-4 py-3 font-medium">Customer</th>
@@ -84,7 +84,7 @@
                 </thead>
                 <tbody class="divide-y divide-border">
                     {#each customers.data as customer (customer.id)}
-                        <tr class="hover:bg-muted/40">
+                        <tr class="hover:bg-row-hover">
                             <td class="px-4 py-3">
                                 <div class="font-medium">{customer.name}</div>
                                 {#if customer.email}
