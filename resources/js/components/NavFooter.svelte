@@ -28,7 +28,7 @@
             {#each items as item (toUrl(item.href))}
                 <SidebarMenuItem>
                     <SidebarMenuButton
-                        class="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+                        class="text-rail-ink-soft hover:text-rail-ink"
                         asChild
                         isActive={url.isCurrentOrParentUrl(
                             item.href,
