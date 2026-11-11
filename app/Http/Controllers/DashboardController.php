@@ -2,9 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CashMovementType;
 use App\Enums\InvoiceStatus;
+use App\Enums\PaymentType;
+use App\Enums\SaleStatus;
+use App\Enums\ShiftStatus;
 use App\Models\Invoice;
+use App\Models\Sale;
+use App\Models\Shift;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\JoinClause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +51,8 @@ class DashboardController extends Controller
             'range' => $range,
             'ranges' => $this->ranges(),
             'summary' => $this->summary($from, $to),
+            'counter' => $this->counter(),
+            'lowStock' => $this->lowStock(),
             'trend' => $this->trend($range),
             'topProducts' => $this->topProducts($from, $to),
             'topCustomers' => $this->topCustomers($from, $to),
@@ -290,6 +300,158 @@ class DashboardController extends Controller
                 'total' => (float) $invoice->total_amount,
             ])
             ->all();
+    }
+
+    /**
+     * Counter (POS) activity for today, plus the shift that is currently open.
+     *
+     * @return array{
+     *     has_sales: bool,
+     *     count: int,
+     *     total: float,
+     *     average: float,
+     *     hourly: array<int, array{hour: int, total: float}>,
+     *     open_shift: array{register: string|null, opened_by: string|null, opened_at: string, opening_float: float, cash_sales: float, expected_cash: float}|null
+     * }
+     */
+    private function counter(): array
+    {
+        $todaySales = DB::table('sales')
+            ->where('status', SaleStatus::Completed->value)
+            ->whereDate('completed_at', today()->toDateString());
+
+        $summary = $this->aggregate((clone $todaySales)
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(total), 0) as total')
+            ->first());
+
+        $count = (int) ($summary['count'] ?? 0);
+        $total = (float) ($summary['total'] ?? 0);
+
+        return [
+            'has_sales' => DB::table('sales')
+                ->where('status', SaleStatus::Completed->value)
+                ->exists(),
+            'count' => $count,
+            'total' => $total,
+            'average' => $count > 0 ? round($total / $count, 2) : 0.0,
+            'hourly' => $this->hourlyTakings($todaySales),
+            'open_shift' => $this->openShift(),
+        ];
+    }
+
+    /**
+     * Bucket today's completed sales into 24 hourly totals.
+     *
+     * @return array<int, array{hour: int, total: float}>
+     */
+    private function hourlyTakings(Builder $sales): array
+    {
+        $hourly = array_fill(0, 24, 0.0);
+
+        foreach ($sales->get(['completed_at', 'total']) as $row) {
+            $data = (array) $row;
+            $hour = (int) Carbon::parse((string) $data['completed_at'])->format('G');
+
+            $hourly[$hour] += (float) $data['total'];
+        }
+
+        $points = [];
+
+        foreach ($hourly as $hour => $total) {
+            $points[] = [
+                'hour' => $hour,
+                'total' => round($total, 2),
+            ];
+        }
+
+        return $points;
+    }
+
+    /**
+     * The shift that is currently open, with its expected cash on hand.
+     *
+     * @return array{register: string|null, opened_by: string|null, opened_at: string, opening_float: float, cash_sales: float, expected_cash: float}|null
+     */
+    private function openShift(): ?array
+    {
+        $shift = Shift::query()
+            ->with(['register:id,name', 'user:id,name'])
+            ->where('status', ShiftStatus::Open->value)
+            ->latest('opened_at')
+            ->first();
+
+        if ($shift === null) {
+            return null;
+        }
+
+        $cashSales = (float) DB::table('payments')
+            ->join('sales', function (JoinClause $join): void {
+                $join->on('sales.id', '=', 'payments.payable_id')
+                    ->where('payments.payable_type', Sale::class);
+            })
+            ->join('payment_methods', 'payment_methods.id', '=', 'payments.payment_method_id')
+            ->where('sales.shift_id', $shift->id)
+            ->where('payments.type', PaymentType::Payment->value)
+            ->where('payment_methods.is_cash', true)
+            ->sum('payments.amount');
+
+        $cashIn = (float) DB::table('cash_movements')
+            ->where('shift_id', $shift->id)
+            ->where('type', CashMovementType::In->value)
+            ->sum('amount');
+
+        $cashOut = (float) DB::table('cash_movements')
+            ->where('shift_id', $shift->id)
+            ->where('type', CashMovementType::Out->value)
+            ->sum('amount');
+
+        return [
+            'register' => $shift->register?->name,
+            'opened_by' => $shift->user?->name,
+            'opened_at' => $shift->opened_at->toIso8601String(),
+            'opening_float' => (float) $shift->opening_float,
+            'cash_sales' => $cashSales,
+            'expected_cash' => round((float) $shift->opening_float + $cashSales + $cashIn - $cashOut, 2),
+        ];
+    }
+
+    /**
+     * Tracked products that are at or below their reorder point.
+     *
+     * Only products that actually have a stock balance are considered, so a
+     * fresh catalogue is not reported as entirely out of stock.
+     *
+     * @return array{has_data: bool, items: array<int, array{id: int, name: string, sku: string, quantity: float, reorder_point: float}>}
+     */
+    private function lowStock(): array
+    {
+        $items = DB::table('stock_levels')
+            ->join('products', 'products.id', '=', 'stock_levels.product_id')
+            ->where('products.is_active', true)
+            ->where('products.track_stock', true)
+            ->whereNotNull('stock_levels.reorder_point')
+            ->whereColumn('stock_levels.quantity_on_hand', '<=', 'stock_levels.reorder_point')
+            ->orderBy('stock_levels.quantity_on_hand')
+            ->limit(5)
+            ->selectRaw('products.id as id, products.name as name, products.sku as sku, stock_levels.quantity_on_hand as quantity, stock_levels.reorder_point as reorder_point')
+            ->get()
+            ->map(function (object $row): array {
+                $data = (array) $row;
+
+                return [
+                    'id' => (int) $data['id'],
+                    'name' => (string) $data['name'],
+                    'sku' => (string) $data['sku'],
+                    'quantity' => (float) $data['quantity'],
+                    'reorder_point' => (float) $data['reorder_point'],
+                ];
+            })
+            ->all();
+
+        return [
+            'has_data' => DB::table('stock_levels')->exists(),
+            'items' => $items,
+        ];
     }
 
     /**

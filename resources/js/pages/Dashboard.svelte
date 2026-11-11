@@ -21,7 +21,7 @@
     import AppHead from '@/components/AppHead.svelte';
     import AppPage from '@/components/AppPage.svelte';
     import InvoiceStatusBadge from '@/components/InvoiceStatusBadge.svelte';
-    import RevenueTrend from '@/components/dashboard/RevenueTrend.svelte';
+    import BarChart from '@/components/dashboard/BarChart.svelte';
     import { Button } from '@/components/ui/button';
     import { formatMoney } from '@/lib/currency';
     import { dashboard } from '@/routes';
@@ -47,6 +47,30 @@
             overdue_total: number;
             overdue_count: number;
         };
+    };
+
+    type CounterSummary = {
+        has_sales: boolean;
+        count: number;
+        total: number;
+        average: number;
+        hourly: { hour: number; total: number }[];
+        open_shift: {
+            register: string | null;
+            opened_by: string | null;
+            opened_at: string;
+            opening_float: number;
+            cash_sales: number;
+            expected_cash: number;
+        } | null;
+    };
+
+    type LowStockItem = {
+        id: number;
+        name: string;
+        sku: string;
+        quantity: number;
+        reorder_point: number;
     };
 
     type ProductRow = {
@@ -85,6 +109,8 @@
         range,
         ranges,
         summary,
+        counter,
+        lowStock,
         trend,
         topProducts,
         topCustomers,
@@ -96,6 +122,8 @@
         range: string;
         ranges: RangeOption[];
         summary: Summary;
+        counter: CounterSummary;
+        lowStock: { has_data: boolean; items: LowStockItem[] };
         trend: TrendPoint[];
         topProducts: ProductRow[];
         topCustomers: CustomerRow[];
@@ -115,6 +143,20 @@
 
     const trendTotal = $derived(
         trend.reduce((sum, point) => sum + point.total, 0),
+    );
+
+    const trendPoints = $derived(
+        trend.map((point) => ({
+            label: dayLabel(point.date),
+            total: point.total,
+        })),
+    );
+
+    const hourlyPoints = $derived(
+        counter.hourly.map((point) => ({
+            label: hourLabel(point.hour),
+            total: point.total,
+        })),
     );
 
     function selectRange(value: string): void {
@@ -147,6 +189,24 @@
     function formatQuantity(value: number): string {
         return value.toLocaleString(page.props.locale, {
             maximumFractionDigits: 3,
+        });
+    }
+
+    function dayLabel(date: string): string {
+        return new Date(`${date}T00:00:00`).toLocaleDateString(
+            page.props.locale,
+            { day: '2-digit', month: 'short' },
+        );
+    }
+
+    function hourLabel(hour: number): string {
+        return `${hour.toString().padStart(2, '0')}:00`;
+    }
+
+    function formatTime(value: string): string {
+        return new Date(value).toLocaleTimeString(page.props.locale, {
+            hour: '2-digit',
+            minute: '2-digit',
         });
     }
 </script>
@@ -290,7 +350,7 @@
             </p>
         </div>
 
-        <RevenueTrend points={trend} />
+        <BarChart points={trendPoints} ariaLabel="Billed revenue per day" />
 
         {#if trendTotal === 0}
             <p class="mt-3 text-xs text-muted-foreground">
@@ -298,6 +358,90 @@
             </p>
         {/if}
     </section>
+
+    {#if counter.has_sales}
+        <section class="rounded-xl border border-border bg-card p-5">
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+                <div class="space-y-0.5">
+                    <h2 class="text-sm font-semibold">Counter · today</h2>
+                    <p class="text-xs text-muted-foreground">
+                        Sales rung up at the register.
+                    </p>
+                </div>
+                <p class="font-mono text-sm text-muted-foreground">
+                    {formatMoney(counter.total)}
+                </p>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+                <div class="space-y-1">
+                    <p
+                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                    >
+                        Takings
+                    </p>
+                    <p class="font-mono text-xl font-semibold">
+                        {formatMoney(counter.total)}
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                    >
+                        Transactions
+                    </p>
+                    <p class="font-mono text-xl font-semibold">
+                        {counter.count}
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <p
+                        class="text-xs font-medium tracking-wide text-muted-foreground uppercase"
+                    >
+                        Average ticket
+                    </p>
+                    <p class="font-mono text-xl font-semibold">
+                        {formatMoney(counter.average)}
+                    </p>
+                </div>
+            </div>
+
+            {#if counter.open_shift}
+                <div
+                    class="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-surface-2 px-3 py-2 text-xs"
+                >
+                    <span>
+                        <span class="font-medium">Shift open</span>
+                        · {counter.open_shift.register ?? 'Register'}
+                        {#if counter.open_shift.opened_by}
+                            · {counter.open_shift.opened_by}
+                        {/if}
+                        · since {formatTime(counter.open_shift.opened_at)}
+                    </span>
+                    <span class="font-mono">
+                        float {formatMoney(counter.open_shift.opening_float)}
+                        · cash {formatMoney(counter.open_shift.cash_sales)}
+                        · expected {formatMoney(
+                            counter.open_shift.expected_cash,
+                        )}
+                    </span>
+                </div>
+            {:else}
+                <p class="mt-4 text-xs text-muted-foreground">
+                    No shift is open right now.
+                </p>
+            {/if}
+
+            {#if counter.total > 0}
+                <div class="mt-5">
+                    <BarChart
+                        points={hourlyPoints}
+                        ariaLabel="Counter sales per hour today"
+                    />
+                </div>
+            {/if}
+        </section>
+    {/if}
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <section class="rounded-xl border border-border bg-card p-5">
@@ -431,6 +575,48 @@
                 </p>
             {/if}
         </section>
+
+        {#if lowStock.has_data}
+            <section class="rounded-xl border border-border bg-card p-5">
+                <div class="mb-4 space-y-0.5">
+                    <h2 class="text-sm font-semibold">Low stock</h2>
+                    <p class="text-xs text-muted-foreground">
+                        Tracked products at or below their reorder point.
+                    </p>
+                </div>
+
+                {#if lowStock.items.length > 0}
+                    <ul class="divide-y divide-border text-sm">
+                        {#each lowStock.items as item (item.id)}
+                            <li
+                                class="flex items-baseline justify-between gap-3 py-2 first:pt-0"
+                            >
+                                <div class="min-w-0">
+                                    <p class="truncate font-medium">
+                                        {item.name}
+                                    </p>
+                                    <p
+                                        class="font-mono text-xs text-muted-foreground"
+                                    >
+                                        {item.sku}
+                                    </p>
+                                </div>
+                                <span
+                                    class="shrink-0 font-mono text-xs text-warning"
+                                >
+                                    {formatQuantity(item.quantity)} /
+                                    {formatQuantity(item.reorder_point)}
+                                </span>
+                            </li>
+                        {/each}
+                    </ul>
+                {:else}
+                    <p class="text-sm text-muted-foreground">
+                        Everything is above its reorder point.
+                    </p>
+                {/if}
+            </section>
+        {/if}
     </div>
 
     <section class="rounded-xl border border-border bg-card">
