@@ -14,7 +14,7 @@ controllers render Svelte pages directly and pass data as props.
 | --- | --- |
 | Authentication — login, registration, password reset, 2FA | Working (Laravel Fortify starter kit) |
 | Registration gate — a TOTP code is required to create an account | Working |
-| Dashboard | Placeholder |
+| Dashboard | Billed revenue, receivables, overdue invoices, daily trend, top products/customers |
 | Customers | CRUD |
 | Products | CRUD, with photo upload, type (product/service), SKU/barcode, category, unit, tax rate, selling/cost price, stock tracking flag |
 | Categories, Units, Tax rates | CRUD |
