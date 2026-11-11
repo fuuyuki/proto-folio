@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
 use App\Models\Invoice;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class DashboardController extends Controller
     /**
      * The first day of the selected range.
      */
-    private function periodStart(string $range): Carbon
+    private function periodStart(string $range): CarbonInterface
     {
         return match ($range) {
             'today' => today(),
@@ -76,7 +77,7 @@ class DashboardController extends Controller
      *     outstanding: array{total: float, count: int, overdue_total: float, overdue_count: int}
      * }
      */
-    private function summary(Carbon $from, Carbon $to): array
+    private function summary(CarbonInterface $from, CarbonInterface $to): array
     {
         $billable = [InvoiceStatus::Sent->value, InvoiceStatus::Paid->value];
         $fromDate = $from->toDateString();
@@ -168,7 +169,7 @@ class DashboardController extends Controller
                 'total' => round($totals[$date] ?? 0, 2),
             ];
 
-            $day->addDay();
+            $day = $day->addDay();
         }
 
         return $points;
@@ -179,7 +180,7 @@ class DashboardController extends Controller
      *
      * @return array<int, array{id: int, name: string, quantity: float, revenue: float}>
      */
-    private function topProducts(Carbon $from, Carbon $to): array
+    private function topProducts(CarbonInterface $from, CarbonInterface $to): array
     {
         return DB::table('invoice_items')
             ->join('products', 'products.id', '=', 'invoice_items.product_id')
@@ -210,7 +211,7 @@ class DashboardController extends Controller
      *
      * @return array<int, array{id: int, name: string, invoice_count: int, revenue: float}>
      */
-    private function topCustomers(Carbon $from, Carbon $to): array
+    private function topCustomers(CarbonInterface $from, CarbonInterface $to): array
     {
         return DB::table('invoices')
             ->join('customers', 'customers.id', '=', 'invoices.customer_id')
@@ -260,7 +261,7 @@ class DashboardController extends Controller
                     'due_date' => $dueDate?->toDateString(),
                     'days_overdue' => $dueDate === null
                         ? 0
-                        : (int) $dueDate->copy()->startOfDay()->diffInDays(today()),
+                        : (int) abs($dueDate->copy()->startOfDay()->diffInDays(today())),
                     'total' => (float) $invoice->total_amount,
                 ];
             })
