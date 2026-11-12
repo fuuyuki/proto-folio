@@ -66,7 +66,11 @@ class ProductController extends Controller
         $image = $request->file('image');
 
         if ($image instanceof UploadedFile) {
-            $data['image_path'] = $storeImage->handle($image);
+            $stored = $storeImage->handle($image);
+
+            $data['image_path'] = $stored['path'];
+            $data['image_width'] = $stored['width'];
+            $data['image_height'] = $stored['height'];
         }
 
         Product::create($this->normalize($data));
@@ -103,9 +107,16 @@ class ProductController extends Controller
         $previousImage = $product->image_path;
 
         if ($image instanceof UploadedFile) {
-            $data['image_path'] = $storeImage->handle($image);
+            $stored = $storeImage->handle($image);
+
+            $data['image_path'] = $stored['path'];
+            $data['image_width'] = $stored['width'];
+            $data['image_height'] = $stored['height'];
         } elseif ($request->boolean('remove_image')) {
             $data['image_path'] = null;
+            $data['image_alt'] = null;
+            $data['image_width'] = null;
+            $data['image_height'] = null;
         }
 
         $product->update($this->normalize($data));
@@ -142,6 +153,7 @@ class ProductController extends Controller
     private function normalize(array $data): array
     {
         $data['cost_price'] = $data['cost_price'] ?? 0;
+        $data['sort_order'] = $data['sort_order'] ?? 0;
 
         if (($data['type'] ?? null) === ProductType::Service->value) {
             $data['track_stock'] = false;

@@ -2,8 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Currency;
-use App\Models\Setting;
+use App\Actions\Currencies\ResolveBaseCurrency;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -56,14 +55,6 @@ class HandleInertiaRequests extends Middleware
      */
     private function baseCurrency(): array
     {
-        $code = Setting::query()->where('key', 'base_currency')->value('value') ?? 'IDR';
-
-        $currency = Currency::query()->where('code', $code)->first();
-
-        return [
-            'code' => $currency->code ?? $code,
-            'symbol' => $currency->symbol ?? $code,
-            'decimal_places' => $currency->decimal_places ?? 2,
-        ];
+        return app(ResolveBaseCurrency::class)->handle();
     }
 }

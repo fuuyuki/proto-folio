@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Products\GenerateProductSlug;
 use App\Enums\ProductType;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,20 +20,29 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $unit_id
  * @property int|null $tax_rate_id
  * @property string $name
+ * @property string $slug
  * @property string $sku
  * @property string|null $barcode
  * @property ProductType $type
  * @property string $price
  * @property string $cost_price
  * @property string|null $description
+ * @property string|null $summary
  * @property string|null $image_path
  * @property string|null $image_url
+ * @property string|null $image_alt
+ * @property int|null $image_width
+ * @property int|null $image_height
+ * @property int $sort_order
+ * @property bool $is_published
+ * @property bool $is_featured
+ * @property bool $show_price
  * @property bool $track_stock
  * @property bool $is_active
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['category_id', 'unit_id', 'tax_rate_id', 'name', 'sku', 'barcode', 'type', 'price', 'cost_price', 'description', 'image_path', 'track_stock', 'is_active'])]
+#[Fillable(['category_id', 'unit_id', 'tax_rate_id', 'name', 'slug', 'sku', 'barcode', 'type', 'price', 'cost_price', 'description', 'summary', 'image_path', 'image_alt', 'image_width', 'image_height', 'sort_order', 'is_published', 'is_featured', 'show_price', 'track_stock', 'is_active'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -56,9 +66,27 @@ class Product extends Model
             'type' => ProductType::class,
             'price' => 'decimal:2',
             'cost_price' => 'decimal:2',
+            'image_width' => 'integer',
+            'image_height' => 'integer',
+            'sort_order' => 'integer',
+            'is_published' => 'boolean',
+            'is_featured' => 'boolean',
+            'show_price' => 'boolean',
             'track_stock' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Assign a public slug the first time a product is persisted.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Product $product): void {
+            if (blank($product->slug)) {
+                $product->slug = app(GenerateProductSlug::class)->handle((string) $product->name);
+            }
+        });
     }
 
     /**

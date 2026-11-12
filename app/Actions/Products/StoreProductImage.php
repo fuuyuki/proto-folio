@@ -22,17 +22,23 @@ class StoreProductImage
     private const QUALITY = 82;
 
     /**
-     * Optimise an uploaded photo, store it on the public disk and return its path.
+     * Optimise an uploaded photo, store it on the public disk and return its
+     * path together with the stored dimensions.
      *
      * The client filename is never reused: the stored name is random, the
      * extension is chosen by the encoder, and metadata (EXIF/GPS) is dropped
      * because the bytes are rebuilt from the decoded pixels.
+     *
+     * @return array{path: string, width: int, height: int}
      */
-    public function handle(UploadedFile $file): string
+    public function handle(UploadedFile $file): array
     {
         $image = $this->decode($file);
         $image = $this->applyOrientation($image, $file);
         $image = $this->downscale($image);
+
+        $width = imagesx($image);
+        $height = imagesy($image);
 
         [$extension, $contents] = $this->encode($image);
 
@@ -47,7 +53,7 @@ class StoreProductImage
 
         Storage::disk('public')->put($path, $contents);
 
-        return $path;
+        return ['path' => $path, 'width' => $width, 'height' => $height];
     }
 
     /**
