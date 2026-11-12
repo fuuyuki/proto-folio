@@ -109,6 +109,7 @@ class PublicCatalogSeeder extends Seeder
                     'name' => $category['name'],
                     'sort_order' => $category['sort_order'],
                     'is_active' => true,
+                    'is_published' => true,
                 ],
             );
         }

@@ -79,6 +79,19 @@ test('editing a category queues a site rebuild', function () {
     Queue::assertPushed(RequestCatalogRebuild::class);
 });
 
+test('publishing or unpublishing a category queues a site rebuild', function () {
+    $category = ProductCategory::query()->create([
+        'name' => 'Workshop',
+        'slug' => 'workshop',
+        'is_active' => true,
+        'is_published' => true,
+    ]);
+
+    $category->update(['is_published' => false]);
+
+    Queue::assertPushed(RequestCatalogRebuild::class);
+});
+
 test('the rebuild job sends the catalog version with the configured token', function () {
     Http::fake();
 

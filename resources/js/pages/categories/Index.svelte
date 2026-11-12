@@ -96,13 +96,28 @@
                                 {category.products_count ?? 0}
                             </td>
                             <td class="px-4 py-3">
-                                <Badge
-                                    variant={category.is_active
-                                        ? 'secondary'
-                                        : 'outline'}
-                                >
-                                    {category.is_active ? 'Active' : 'Inactive'}
-                                </Badge>
+                                <div class="flex flex-wrap gap-1">
+                                    <Badge
+                                        variant={category.is_active
+                                            ? 'secondary'
+                                            : 'outline'}
+                                    >
+                                        {category.is_active
+                                            ? 'Active'
+                                            : 'Inactive'}
+                                    </Badge>
+                                    <Badge
+                                        variant={category.is_active &&
+                                        category.is_published
+                                            ? 'secondary'
+                                            : 'outline'}
+                                    >
+                                        {category.is_active &&
+                                        category.is_published
+                                            ? 'Website'
+                                            : 'Unlisted'}
+                                    </Badge>
+                                </div>
                             </td>
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-end gap-1">

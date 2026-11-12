@@ -25,13 +25,15 @@ test('a category can be created with a generated slug', function () {
         'name' => 'Hot Drinks',
         'sort_order' => 2,
         'is_active' => '1',
+        'is_published' => '1',
     ])->assertRedirect(route('categories.index'));
 
     $category = ProductCategory::query()->where('name', 'Hot Drinks')->first();
 
     expect($category?->slug)->toBe('hot-drinks')
         ->and($category?->sort_order)->toBe(2)
-        ->and($category?->is_active)->toBeTrue();
+        ->and($category?->is_active)->toBeTrue()
+        ->and($category?->is_published)->toBeTrue();
 });
 
 test('a category can be nested under a parent', function () {
@@ -91,13 +93,15 @@ test('a category can be updated', function () {
         'slug' => 'new',
         'sort_order' => 5,
         'is_active' => '0',
+        'is_published' => '0',
     ])->assertRedirect(route('categories.index'));
 
     expect($category->refresh())
         ->name->toBe('New')
         ->slug->toBe('new')
         ->sort_order->toBe(5)
-        ->is_active->toBeFalse();
+        ->is_active->toBeFalse()
+        ->is_published->toBeFalse();
 });
 
 test('a category can be deleted', function () {

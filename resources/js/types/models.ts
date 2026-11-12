@@ -77,6 +77,7 @@ export type ProductCategory = {
     slug: string;
     sort_order: number;
     is_active: boolean;
+    is_published: boolean;
     products_count?: number;
     parent?: { id: number; name: string } | null;
     created_at: string;

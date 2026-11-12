@@ -30,6 +30,7 @@ class BuildPublicCatalog
 
         $categories = ProductCategory::query()
             ->where('is_active', true)
+            ->where('is_published', true)
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'sort_order']);
@@ -39,7 +40,9 @@ class BuildPublicCatalog
             ->where('is_active', true)
             ->where(function (Builder $query): void {
                 $query->whereNull('category_id')
-                    ->orWhereHas('category', fn (Builder $query): Builder => $query->where('is_active', true));
+                    ->orWhereHas('category', fn (Builder $query): Builder => $query
+                        ->where('is_active', true)
+                        ->where('is_published', true));
             })
             ->with('category:id,name,slug')
             ->orderBy('sort_order')

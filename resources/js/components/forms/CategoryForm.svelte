@@ -85,16 +85,44 @@
                 <InputError message={errors.sort_order} />
             </div>
 
-            <label class="flex items-center gap-3 self-end pb-2 md:self-center">
-                <input
-                    type="checkbox"
-                    name="is_active"
-                    value="1"
-                    checked={category?.is_active ?? true}
-                    class="size-4 rounded border-input accent-primary"
-                />
-                <span class="text-sm font-medium">Active</span>
-            </label>
+            <div
+                class="grid gap-4 md:col-span-2 md:grid-cols-2 md:items-start"
+            >
+                <label class="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        name="is_active"
+                        value="1"
+                        checked={category?.is_active ?? true}
+                        class="mt-0.5 size-4 rounded border-input accent-primary"
+                    />
+                    <span class="space-y-0.5">
+                        <span class="block text-sm font-medium">Active</span>
+                        <span class="block text-xs text-muted-foreground">
+                            Show this category in the POS and reports.
+                        </span>
+                    </span>
+                </label>
+
+                <label class="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        name="is_published"
+                        value="1"
+                        checked={category?.is_published ?? true}
+                        class="mt-0.5 size-4 rounded border-input accent-primary"
+                    />
+                    <span class="space-y-0.5">
+                        <span class="block text-sm font-medium">
+                            Show on the website
+                        </span>
+                        <span class="block text-xs text-muted-foreground">
+                            Publish this category's carousel and its products.
+                            Inactive categories are never published.
+                        </span>
+                    </span>
+                </label>
+            </div>
         </div>
 
         <div class="mt-6 flex items-center gap-2">

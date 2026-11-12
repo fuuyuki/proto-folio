@@ -30,6 +30,7 @@ class CategoryRequest extends FormRequest
             'slug' => Str::slug($slug !== '' ? $slug : $name),
             'sort_order' => $this->input('sort_order') ?? 0,
             'is_active' => $this->boolean('is_active'),
+            'is_published' => $this->boolean('is_published'),
         ]);
     }
 
@@ -60,6 +61,7 @@ class CategoryRequest extends FormRequest
             ],
             'sort_order' => ['required', 'integer', 'min:0', 'max:65535'],
             'is_active' => ['boolean'],
+            'is_published' => ['boolean'],
         ];
     }
 }

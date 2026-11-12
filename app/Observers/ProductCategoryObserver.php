@@ -17,6 +17,7 @@ class ProductCategoryObserver
         'slug',
         'sort_order',
         'is_active',
+        'is_published',
         'parent_id',
     ];
 

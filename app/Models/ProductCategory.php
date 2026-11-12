@@ -17,10 +17,11 @@ use Illuminate\Support\Carbon;
  * @property string $slug
  * @property int $sort_order
  * @property bool $is_active
+ * @property bool $is_published
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['parent_id', 'name', 'slug', 'sort_order', 'is_active'])]
+#[Fillable(['parent_id', 'name', 'slug', 'sort_order', 'is_active', 'is_published'])]
 #[ObservedBy([ProductCategoryObserver::class])]
 class ProductCategory extends Model
 {
@@ -34,6 +35,7 @@ class ProductCategory extends Model
         return [
             'sort_order' => 'integer',
             'is_active' => 'boolean',
+            'is_published' => 'boolean',
         ];
     }
 

@@ -33,11 +33,18 @@ test('the catalog exposes only published and active products', function () {
         ->assertJsonPath('products.0.slug', $visible->slug);
 });
 
-test('the catalog skips products in inactive categories but keeps uncategorised ones', function () {
+test('the catalog skips products in unpublished or inactive categories but keeps uncategorised ones', function () {
     $inactiveCategory = ProductCategory::query()->create([
         'name' => 'Archived',
         'slug' => 'archived',
         'is_active' => false,
+    ]);
+
+    $unpublishedCategory = ProductCategory::query()->create([
+        'name' => 'Internal',
+        'slug' => 'internal',
+        'is_active' => true,
+        'is_published' => false,
     ]);
 
     $visibleCategory = ProductCategory::query()->create([
@@ -49,6 +56,13 @@ test('the catalog skips products in inactive categories but keeps uncategorised 
     Product::factory()->create([
         'name' => 'Archived Item',
         'category_id' => $inactiveCategory->id,
+        'is_published' => true,
+        'is_active' => true,
+    ]);
+
+    Product::factory()->create([
+        'name' => 'Internal Item',
+        'category_id' => $unpublishedCategory->id,
         'is_published' => true,
         'is_active' => true,
     ]);
@@ -201,18 +215,27 @@ test('the catalog exposes a photo only when it has alt text', function () {
         ->and($response->json('products.1.image'))->toBeNull();
 });
 
-test('the catalog lists only active categories', function () {
+test('the catalog lists only published, active categories', function () {
     ProductCategory::query()->create([
         'name' => 'Visible',
         'slug' => 'visible',
         'sort_order' => 2,
         'is_active' => true,
+        'is_published' => true,
     ]);
 
     ProductCategory::query()->create([
         'name' => 'Hidden',
         'slug' => 'hidden',
         'is_active' => false,
+    ]);
+
+    ProductCategory::query()->create([
+        'name' => 'Internal',
+        'slug' => 'internal',
+        'sort_order' => 1,
+        'is_active' => true,
+        'is_published' => false,
     ]);
 
     $this->getJson(route('api.v1.catalog'))
