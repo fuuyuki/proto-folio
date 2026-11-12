@@ -199,3 +199,71 @@ test('a product can be deleted', function () {
 
     expect($product->fresh())->toBeNull();
 });
+
+test('a product slug is generated from its name', function () {
+    $this->post(route('products.store'), [
+        'name' => 'Consulting Hour',
+        'type' => 'product',
+        'price' => '125.00',
+        'is_active' => '1',
+    ])->assertRedirect(route('products.index'));
+
+    expect(Product::query()->sole()->slug)->toBe('consulting-hour');
+});
+
+test('product slugs stay unique when names collide', function () {
+    Product::factory()->create(['name' => 'Consulting Hour']);
+
+    $this->post(route('products.store'), [
+        'name' => 'Consulting Hour',
+        'type' => 'product',
+        'price' => '125.00',
+        'is_active' => '1',
+    ])->assertRedirect(route('products.index'));
+
+    expect(Product::query()->orderBy('id')->pluck('slug')->all())
+        ->toBe(['consulting-hour', 'consulting-hour-2']);
+});
+
+test('renaming a product keeps its slug', function () {
+    $product = Product::factory()->create(['name' => 'Old Name']);
+
+    $this->put(route('products.update', $product), [
+        'name' => 'New Name',
+        'type' => 'product',
+        'price' => '42.00',
+        'is_active' => '1',
+    ])->assertSessionHasNoErrors();
+
+    expect($product->refresh()->slug)->toBe('old-name');
+});
+
+test('catalog settings are saved with the product', function () {
+    $this->post(route('products.store'), [
+        'name' => 'Robotics Learning Kit',
+        'type' => 'product',
+        'price' => '1250000',
+        'is_active' => '1',
+        'is_published' => '1',
+        'is_featured' => '1',
+        'show_price' => '1',
+        'sort_order' => '3',
+        'summary' => 'A hands-on kit for learning hardware and code.',
+    ])->assertSessionHasNoErrors()
+        ->assertRedirect(route('products.index'));
+
+    expect(Product::query()->sole())
+        ->is_published->toBeTrue()
+        ->is_featured->toBeTrue()
+        ->show_price->toBeTrue()
+        ->sort_order->toBe(3)
+        ->summary->toBe('A hands-on kit for learning hardware and code.');
+});
+
+test('a product is hidden from the catalog by default', function () {
+    Product::factory()->create();
+
+    expect(Product::query()->sole())
+        ->is_published->toBeFalse()
+        ->is_featured->toBeFalse();
+});
