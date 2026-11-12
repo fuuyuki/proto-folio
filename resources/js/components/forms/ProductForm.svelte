@@ -132,6 +132,23 @@
                         {/if}
                     </div>
                 </div>
+
+                {#if preview}
+                    <div class="mt-4 grid gap-2">
+                        <Label for="image_alt">Photo description</Label>
+                        <Input
+                            id="image_alt"
+                            name="image_alt"
+                            value={product?.image_alt ?? ''}
+                            placeholder="A robotics kit with a controller, sensors, and a small robot chassis."
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Describe the photo for screen readers and search
+                            engines.
+                        </p>
+                        <InputError message={errors.image_alt} />
+                    </div>
+                {/if}
             </section>
 
             <section class="rounded-xl border border-border bg-card p-6">
@@ -215,6 +232,118 @@
                         />
                         <InputError message={errors.description} />
                     </div>
+                </div>
+            </section>
+
+            <section class="rounded-xl border border-border bg-card p-6">
+                <div class="mb-5 space-y-0.5">
+                    <h2 class="text-sm font-semibold">Website catalog</h2>
+                    <p class="text-xs text-muted-foreground">
+                        Control how this item appears on the public product
+                        catalog.
+                    </p>
+                </div>
+
+                <div class="grid gap-5 md:grid-cols-2">
+                    <label class="flex items-start gap-3 md:col-span-2">
+                        <input
+                            type="checkbox"
+                            name="is_published"
+                            value="1"
+                            checked={product?.is_published ?? false}
+                            class="mt-0.5 size-4 rounded border-input accent-primary"
+                        />
+                        <span class="space-y-0.5">
+                            <span class="block text-sm font-medium">
+                                Show on the website
+                            </span>
+                            <span class="block text-xs text-muted-foreground">
+                                Publish this item to the public catalog.
+                                Inactive products are never published.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div class="grid gap-2 md:col-span-2">
+                        <Label for="summary">Short summary</Label>
+                        <Textarea
+                            id="summary"
+                            name="summary"
+                            value={product?.summary ?? ''}
+                            rows={2}
+                            maxlength={280}
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            One or two sentences for the catalog card, up to 280
+                            characters.
+                        </p>
+                        <InputError message={errors.summary} />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="sort_order">Catalog order</Label>
+                        <Input
+                            id="sort_order"
+                            name="sort_order"
+                            type="number"
+                            step="1"
+                            min="0"
+                            value={product?.sort_order ?? 0}
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Lower numbers appear first.
+                        </p>
+                        <InputError message={errors.sort_order} />
+                    </div>
+
+                    {#if product?.slug}
+                        <div class="grid gap-2">
+                            <Label for="slug">Public URL</Label>
+                            <Input id="slug" value={product.slug} readonly />
+                            <p class="text-xs text-muted-foreground">
+                                /products/{product.slug} — stays the same if the
+                                product is renamed.
+                            </p>
+                        </div>
+                    {/if}
+
+                    <label class="flex items-start gap-3 md:col-span-2">
+                        <input
+                            type="checkbox"
+                            name="is_featured"
+                            value="1"
+                            checked={product?.is_featured ?? false}
+                            class="mt-0.5 size-4 rounded border-input accent-primary"
+                        />
+                        <span class="space-y-0.5">
+                            <span class="block text-sm font-medium">
+                                Feature this item
+                            </span>
+                            <span class="block text-xs text-muted-foreground">
+                                Highlight it in the main spot on the landing
+                                page.
+                            </span>
+                        </span>
+                    </label>
+
+                    <label class="flex items-start gap-3 md:col-span-2">
+                        <input
+                            type="checkbox"
+                            name="show_price"
+                            value="1"
+                            checked={product?.show_price ?? true}
+                            class="mt-0.5 size-4 rounded border-input accent-primary"
+                        />
+                        <span class="space-y-0.5">
+                            <span class="block text-sm font-medium">
+                                Show the price
+                            </span>
+                            <span class="block text-xs text-muted-foreground">
+                                When disabled, the catalog asks visitors to get
+                                in touch instead.
+                            </span>
+                        </span>
+                    </label>
                 </div>
             </section>
 

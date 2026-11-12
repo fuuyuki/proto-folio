@@ -25,14 +25,23 @@ export type CurrencyConfig = {
 export type Product = {
     id: number;
     name: string;
+    slug: string;
     sku: string;
     barcode: string | null;
     type: ProductType;
     price: string;
     cost_price: string;
     description: string | null;
+    summary: string | null;
     image_path: string | null;
     image_url: string | null;
+    image_alt: string | null;
+    image_width: number | null;
+    image_height: number | null;
+    sort_order: number;
+    is_published: boolean;
+    is_featured: boolean;
+    show_price: boolean;
     category_id: number | null;
     unit_id: number | null;
     tax_rate_id: number | null;
