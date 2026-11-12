@@ -1,0 +1,192 @@
+/*
+ * Protofy — Education theme ("Learn")
+ * Tailwind CSS v4 design tokens.
+ *
+ * Same DNA as the Protofy Labs site (navy, cyan → indigo, system fonts),
+ * but warmer, rounder, and more spacious. Use for the education site.
+ *
+ * Drop into src/styles/ and import once from the root layout.
+ */
+
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Type: rounded display voice, system-only (no font CDN). */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display:
+    ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN",
+    "Segoe UI Variable Display", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* Brand: keep the cyan → indigo pair, add one warm highlight. */
+  --color-brand: #4f46e5;
+  --color-brand-strong: #4338ca;
+  --color-brand-soft: #eef2ff;
+  --color-accent: #0891b2;
+  --color-accent-soft: #cffafe;
+  --color-highlight: #f59e0b;
+  --color-highlight-soft: #fef3c7;
+
+  /* Surfaces (light): warm paper instead of cool paper. */
+  --color-canvas: #fbfaf6;
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f1e8;
+  --color-line: #e3ddcf;
+  --color-ink: #13203a;
+  --color-ink-soft: #4d596b;
+  --color-ink-faint: #6b7688;
+
+  /* Night band: dark hero/footer on a light page. */
+  --color-night: #0a1428;
+  --color-night-2: #12213a;
+  --color-on-night: #eef4ff;
+  --color-on-night-soft: #aab9d0;
+
+  /* Actions: semantic pair, so dark mode can flip both sides. */
+  --color-action: #4f46e5;
+  --color-action-hover: #4338ca;
+  --color-action-fg: #ffffff;
+  --color-link: #4338ca;
+  --color-focus-ring: #4f46e5;
+
+  /* Semantic states. */
+  --color-success: #047857;
+  --color-success-soft: #d1fae5;
+  --color-warning: #b45309;
+  --color-warning-soft: #fef3c7;
+  --color-info: #0369a1;
+  --color-info-soft: #e0f2fe;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fee2e2;
+
+  /* Radii: friendlier than the admin app. */
+  --radius-control: 0.875rem; /* 14px */
+  --radius-card: 1.25rem; /* 20px */
+  --radius-panel: 1.75rem; /* 28px */
+  --radius-pill: 9999px;
+
+  /* Shadows: soft, low-contrast, slightly warm. */
+  --shadow-card:
+    0 1px 2px rgb(19 32 58 / 0.06), 0 14px 34px -14px rgb(19 32 58 / 0.22);
+  --shadow-pop: 0 18px 44px -16px rgb(19 32 58 / 0.35);
+
+  /* Comfortable control heights (44 / 52 / 56). */
+  --spacing-control-sm: 2.75rem;
+  --spacing-control: 3.25rem;
+  --spacing-control-lg: 3.5rem;
+
+  /* Motion. */
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  .dark {
+    --color-canvas: #0a1428;
+    --color-surface: #101d34;
+    --color-surface-2: #16263f;
+    --color-line: #273a56;
+    --color-ink: #eef4ff;
+    --color-ink-soft: #aab9d0;
+    --color-ink-faint: #7f93ad;
+    --color-night: #081020;
+    --color-night-2: #101d34;
+    --color-on-night: #eef4ff;
+    --color-on-night-soft: #aab9d0;
+
+    --color-brand: #a5b4fc;
+    --color-brand-strong: #c7d2fe;
+    --color-brand-soft: #1c2950;
+    --color-accent: #22d3ee;
+    --color-accent-soft: #0d3b47;
+    --color-highlight: #fbbf24;
+    --color-highlight-soft: #3b2f10;
+
+    --color-action: #a5b4fc;
+    --color-action-hover: #c7d2fe;
+    --color-action-fg: #0a1428;
+    --color-link: #a5b4fc;
+    --color-focus-ring: #a5b4fc;
+
+    --color-success: #6ee7b7;
+    --color-success-soft: #123c33;
+    --color-warning: #fbbf24;
+    --color-warning-soft: #3b2f10;
+    --color-info: #7dd3fc;
+    --color-info-soft: #123047;
+    --color-danger: #fca5a5;
+    --color-danger-soft: #421a1a;
+
+    --shadow-card:
+      0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -18px rgb(0 0 0 / 0.7);
+    --shadow-pop: 0 20px 48px -18px rgb(0 0 0 / 0.8);
+  }
+
+  /* Optional: a dark band inside a light page (hero, footer, CTA). */
+  .night {
+    --color-canvas: var(--color-night);
+    --color-surface: var(--color-night-2);
+    --color-line: #273a56;
+    --color-ink: var(--color-on-night);
+    --color-ink-soft: var(--color-on-night-soft);
+    --color-ink-faint: #7f93ad;
+    --color-action: #a5b4fc;
+    --color-action-hover: #c7d2fe;
+    --color-action-fg: #0a1428;
+    --color-link: #a5b4fc;
+    --color-focus-ring: #22d3ee;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-style: normal;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-highlight);
+    color: var(--color-ink);
+  }
+
+  :where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

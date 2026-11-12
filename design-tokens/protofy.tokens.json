@@ -1,0 +1,289 @@
+{
+  "$name": "Protofy design tokens",
+  "$version": "1.0.0",
+  "$description": "Shared Protofy core with two presets: Learn (education site) and Desk (product-selling admin app). The CSS files (education.css, admin.css) are the Tailwind v4 implementation; this JSON mirrors them for Figma and other tools.",
+  "core": {
+    "typography": {
+      "sans": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+      "display": {
+        "education": "ui-rounded, 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', 'Segoe UI Variable Display', ui-sans-serif, system-ui, sans-serif",
+        "admin": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
+      },
+      "mono": "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+      "scale": {
+        "ui": "0.875rem",
+        "xs": "0.75rem",
+        "sm": "0.875rem",
+        "base": "1rem",
+        "lg": "1.125rem",
+        "xl": "1.25rem",
+        "2xl": "1.5rem",
+        "3xl": "1.875rem",
+        "4xl": "2.25rem",
+        "5xl": "3rem"
+      }
+    },
+    "spacing": {
+      "unit": "0.25rem",
+      "scale": {
+        "1": "0.25rem",
+        "2": "0.5rem",
+        "3": "0.75rem",
+        "4": "1rem",
+        "5": "1.25rem",
+        "6": "1.5rem",
+        "8": "2rem",
+        "10": "2.5rem",
+        "12": "3rem",
+        "16": "4rem",
+        "20": "5rem",
+        "24": "6rem"
+      }
+    },
+    "breakpoints": {
+      "sm": "40rem",
+      "md": "48rem",
+      "lg": "64rem",
+      "xl": "80rem",
+      "2xl": "96rem"
+    },
+    "zIndex": {
+      "base": 0,
+      "sticky": 10,
+      "dropdown": 20,
+      "overlay": 30,
+      "modal": 40,
+      "toast": 50,
+      "skipLink": 60
+    },
+    "motion": {
+      "durationFast": "120ms",
+      "durationBase": "180ms",
+      "durationSlow": "240ms",
+      "easingEducation": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "easingAdmin": "cubic-bezier(0.2, 0, 0, 1)"
+    },
+    "focus": {
+      "width": "2px",
+      "offset": "3px",
+      "offsetAdmin": "2px"
+    }
+  },
+  "themes": {
+    "education": {
+      "radius": {
+        "control": "0.875rem",
+        "card": "1.25rem",
+        "panel": "1.75rem",
+        "pill": "9999px"
+      },
+      "controlHeights": {
+        "sm": "2.75rem",
+        "md": "3.25rem",
+        "lg": "3.5rem"
+      },
+      "shadow": {
+        "card": "0 1px 2px rgb(19 32 58 / 0.06), 0 14px 34px -14px rgb(19 32 58 / 0.22)",
+        "pop": "0 18px 44px -16px rgb(19 32 58 / 0.35)"
+      },
+      "light": {
+        "color": {
+          "brand": "#4f46e5",
+          "brandStrong": "#4338ca",
+          "brandSoft": "#eef2ff",
+          "accent": "#0891b2",
+          "accentSoft": "#cffafe",
+          "highlight": "#f59e0b",
+          "highlightSoft": "#fef3c7",
+          "canvas": "#fbfaf6",
+          "surface": "#ffffff",
+          "surface2": "#f5f1e8",
+          "line": "#e3ddcf",
+          "ink": "#13203a",
+          "inkSoft": "#4d596b",
+          "inkFaint": "#6b7688",
+          "night": "#0a1428",
+          "night2": "#12213a",
+          "onNight": "#eef4ff",
+          "onNightSoft": "#aab9d0",
+          "action": "#4f46e5",
+          "actionHover": "#4338ca",
+          "actionFg": "#ffffff",
+          "link": "#4338ca",
+          "focusRing": "#4f46e5",
+          "success": "#047857",
+          "successSoft": "#d1fae5",
+          "warning": "#b45309",
+          "warningSoft": "#fef3c7",
+          "info": "#0369a1",
+          "infoSoft": "#e0f2fe",
+          "danger": "#b91c1c",
+          "dangerSoft": "#fee2e2"
+        }
+      },
+      "dark": {
+        "color": {
+          "brand": "#a5b4fc",
+          "brandStrong": "#c7d2fe",
+          "brandSoft": "#1c2950",
+          "accent": "#22d3ee",
+          "accentSoft": "#0d3b47",
+          "highlight": "#fbbf24",
+          "highlightSoft": "#3b2f10",
+          "canvas": "#0a1428",
+          "surface": "#101d34",
+          "surface2": "#16263f",
+          "line": "#273a56",
+          "ink": "#eef4ff",
+          "inkSoft": "#aab9d0",
+          "inkFaint": "#7f93ad",
+          "night": "#081020",
+          "night2": "#101d34",
+          "onNight": "#eef4ff",
+          "onNightSoft": "#aab9d0",
+          "action": "#a5b4fc",
+          "actionHover": "#c7d2fe",
+          "actionFg": "#0a1428",
+          "link": "#a5b4fc",
+          "focusRing": "#a5b4fc",
+          "success": "#6ee7b7",
+          "successSoft": "#123c33",
+          "warning": "#fbbf24",
+          "warningSoft": "#3b2f10",
+          "info": "#7dd3fc",
+          "infoSoft": "#123047",
+          "danger": "#fca5a5",
+          "dangerSoft": "#421a1a"
+        },
+        "shadow": {
+          "card": "0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -18px rgb(0 0 0 / 0.7)",
+          "pop": "0 20px 48px -18px rgb(0 0 0 / 0.8)"
+        }
+      }
+    },
+    "admin": {
+      "radius": {
+        "control": "0.5rem",
+        "card": "0.75rem",
+        "panel": "1rem",
+        "pill": "9999px"
+      },
+      "controlHeights": {
+        "sm": "2rem",
+        "md": "2.25rem",
+        "lg": "2.5rem",
+        "row": "2.5rem"
+      },
+      "shadow": {
+        "card": "0 1px 2px rgb(15 23 42 / 0.06)",
+        "pop": "0 16px 40px -12px rgb(15 23 42 / 0.28)"
+      },
+      "charts": {
+        "light": ["#4f46e5", "#0891b2", "#0d9488", "#f59e0b", "#e11d48", "#7c3aed"],
+        "dark": ["#818cf8", "#22d3ee", "#2dd4bf", "#fbbf24", "#fb7185", "#a78bfa"]
+      },
+      "light": {
+        "color": {
+          "brand": "#4f46e5",
+          "brandStrong": "#4338ca",
+          "brandSoft": "#eef2ff",
+          "accent": "#0891b2",
+          "accentSoft": "#e0f2fe",
+          "canvas": "#f4f6fa",
+          "surface": "#ffffff",
+          "surface2": "#eef2f8",
+          "line": "#dde3ec",
+          "ink": "#0f172a",
+          "inkSoft": "#475569",
+          "inkFaint": "#64748b",
+          "sidebar": "#0b1220",
+          "sidebarInk": "#cbd5e1",
+          "sidebarInkSoft": "#8fa1b8",
+          "sidebarActive": "#1e293b",
+          "sidebarActiveInk": "#ffffff",
+          "tableHead": "#f8fafc",
+          "rowHover": "#f1f5f9",
+          "rowSelected": "#eef2ff",
+          "action": "#4f46e5",
+          "actionHover": "#4338ca",
+          "actionFg": "#ffffff",
+          "link": "#4338ca",
+          "focusRing": "#4f46e5",
+          "success": "#047857",
+          "successSoft": "#d1fae5",
+          "warning": "#b45309",
+          "warningSoft": "#fef3c7",
+          "info": "#0369a1",
+          "infoSoft": "#e0f2fe",
+          "danger": "#b91c1c",
+          "dangerSoft": "#fee2e2",
+          "statusPending": "#b45309",
+          "statusPendingSoft": "#fef3c7",
+          "statusPaid": "#047857",
+          "statusPaidSoft": "#d1fae5",
+          "statusShipped": "#0369a1",
+          "statusShippedSoft": "#e0f2fe",
+          "statusCancelled": "#b91c1c",
+          "statusCancelledSoft": "#fee2e2",
+          "price": "#0f172a",
+          "priceCompare": "#64748b",
+          "discount": "#b91c1c",
+          "discountSoft": "#fee2e2"
+        }
+      },
+      "dark": {
+        "color": {
+          "brand": "#818cf8",
+          "brandStrong": "#a5b4fc",
+          "brandSoft": "#1c2950",
+          "accent": "#22d3ee",
+          "accentSoft": "#0d3b47",
+          "canvas": "#0b1220",
+          "surface": "#111a2b",
+          "surface2": "#182338",
+          "line": "#263349",
+          "ink": "#e8eef7",
+          "inkSoft": "#9fb0c6",
+          "inkFaint": "#6f8098",
+          "sidebar": "#080e18",
+          "sidebarInk": "#cbd5e1",
+          "sidebarInkSoft": "#8fa1b8",
+          "sidebarActive": "#1e2b42",
+          "sidebarActiveInk": "#ffffff",
+          "tableHead": "#0f1829",
+          "rowHover": "#16223a",
+          "rowSelected": "#1c2950",
+          "action": "#818cf8",
+          "actionHover": "#a5b4fc",
+          "actionFg": "#0b1220",
+          "link": "#a5b4fc",
+          "focusRing": "#818cf8",
+          "success": "#6ee7b7",
+          "successSoft": "#123c33",
+          "warning": "#fbbf24",
+          "warningSoft": "#3b2f10",
+          "info": "#7dd3fc",
+          "infoSoft": "#123047",
+          "danger": "#fca5a5",
+          "dangerSoft": "#421a1a",
+          "statusPending": "#fbbf24",
+          "statusPendingSoft": "#3b2f10",
+          "statusPaid": "#6ee7b7",
+          "statusPaidSoft": "#123c33",
+          "statusShipped": "#7dd3fc",
+          "statusShippedSoft": "#123047",
+          "statusCancelled": "#fca5a5",
+          "statusCancelledSoft": "#421a1a",
+          "price": "#e8eef7",
+          "priceCompare": "#6f8098",
+          "discount": "#fca5a5",
+          "discountSoft": "#421a1a"
+        },
+        "shadow": {
+          "card": "0 1px 2px rgb(0 0 0 / 0.35)",
+          "pop": "0 18px 44px -14px rgb(0 0 0 / 0.65)"
+        }
+      }
+    }
+  }
+}
