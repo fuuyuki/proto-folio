@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Actions\Products\GenerateProductSlug;
 use App\Enums\ProductType;
+use App\Observers\ProductObserver;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,6 +45,7 @@ use Illuminate\Support\Facades\Storage;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['category_id', 'unit_id', 'tax_rate_id', 'name', 'slug', 'sku', 'barcode', 'type', 'price', 'cost_price', 'description', 'summary', 'image_path', 'image_alt', 'image_width', 'image_height', 'sort_order', 'is_published', 'is_featured', 'show_price', 'track_stock', 'is_active'])]
+#[ObservedBy([ProductObserver::class])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */

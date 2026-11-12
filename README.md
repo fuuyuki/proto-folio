@@ -223,7 +223,7 @@ npm run check                   # Vite+ checks (formatting / lint)
 ## Docker deployment
 
 The repository ships a three-stage `Dockerfile` (Composer vendor → Node assets → php-fpm +
-nginx runtime) and a `docker-compose.yml` with `app`, `web` and `db` services.
+nginx runtime) and a `docker-compose.yml` with `app`, `worker`, `web` and `db` services.
 
 ```sh
 cp .env.docker.example .env.docker
@@ -242,6 +242,20 @@ APP_PORT=8080
 DB_HOST_PORT=5433         # Postgres published on loopback only, for DBeaver over SSH
 ```
 
+The public catalog integration is optional. To let ProFolio ask the static site to
+rebuild after a product or category changes, also set:
+
+```dotenv
+CATALOG_REBUILD_URL=https://protofylabs.web.id/api/rebuild
+CATALOG_REBUILD_TOKEN=<shared secret>
+CATALOG_REBUILD_DELAY_MINUTES=2
+```
+
+Leave `CATALOG_REBUILD_URL` or `CATALOG_REBUILD_TOKEN` blank to disable rebuild
+requests. The token must match `REBUILD_TOKEN` in the website's
+`/opt/protofylabs-api/.env`; see `deploy/rebuild` in the site repository for the
+host-side units and script.
+
 ```sh
 docker compose --env-file .env.docker up -d --build
 docker compose --env-file .env.docker ps
@@ -253,6 +267,11 @@ On boot the `app` entrypoint waits for Postgres, then runs `migrate --force`, se
 `RUN_MIGRATIONS`, `SEED_DEFAULTS` and `APP_OPTIMIZE` in `.env.docker`. Both `app` and `web`
 share the `storage` volume (read-only in `web`) so uploaded product photos are served directly
 by nginx.
+
+The `worker` service runs `php artisan queue:work` as `www-data` and processes queued jobs,
+including the debounced public-catalog rebuild request. It starts only after the `web`
+healthcheck passes, so migrations and the `jobs` table exist before it dequeues anything.
+This stack does not run the scheduler; the rebuild safety net lives on the website host.
 
 Useful runtime commands:
 

@@ -69,6 +69,12 @@ class BuildPublicCatalog
             ProductCategory::query()->max('updated_at'),
         ])->filter()->max();
 
+        // An empty catalog has no timestamp. Return a fixed epoch instead of
+        // "now" so the version stays stable until the first record exists.
+        if ($latest === null) {
+            return Carbon::createFromTimestamp(0)->toIso8601String();
+        }
+
         return Carbon::parse($latest)->toIso8601String();
     }
 }

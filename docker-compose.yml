@@ -1,5 +1,42 @@
 name: proto-folio
 
+# Shared by every PHP container so the web app and the queue worker always see
+# the same database, cache and catalog settings.
+x-app-environment: &app-environment
+  APP_NAME: ${APP_NAME:-Proto Folio}
+  APP_ENV: ${APP_ENV:-production}
+  APP_DEBUG: ${APP_DEBUG:-false}
+  APP_URL: ${APP_URL:-http://localhost:8080}
+  APP_KEY: ${APP_KEY:?APP_KEY is required. Copy .env.docker.example to .env.docker and set it.}
+  APP_LOCALE: ${APP_LOCALE:-en}
+  APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:-en}
+
+  LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+
+  DB_CONNECTION: pgsql
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_DATABASE: ${DB_DATABASE:-profolio}
+  DB_USERNAME: ${DB_USERNAME:-profolio}
+  DB_PASSWORD: ${DB_PASSWORD:-secret}
+
+  SESSION_DRIVER: ${SESSION_DRIVER:-database}
+  SESSION_ENCRYPT: ${SESSION_ENCRYPT:-false}
+  CACHE_STORE: ${CACHE_STORE:-database}
+  QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+
+  MAIL_MAILER: ${MAIL_MAILER:-log}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
+  MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Proto Folio}
+
+  CATALOG_REBUILD_URL: ${CATALOG_REBUILD_URL:-}
+  CATALOG_REBUILD_TOKEN: ${CATALOG_REBUILD_TOKEN:-}
+  CATALOG_REBUILD_DELAY_MINUTES: ${CATALOG_REBUILD_DELAY_MINUTES:-2}
+
+  RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+  SEED_DEFAULTS: ${SEED_DEFAULTS:-true}
+  APP_OPTIMIZE: ${APP_OPTIMIZE:-true}
+
 services:
   app:
     build:
@@ -8,42 +45,36 @@ services:
     image: proto-folio:latest
     restart: unless-stopped
 
-    environment:
-      APP_NAME: ${APP_NAME:-Proto Folio}
-      APP_ENV: ${APP_ENV:-production}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost:8080}
-      APP_KEY: ${APP_KEY:?APP_KEY is required. Copy .env.docker.example to .env.docker and set it.}
-      APP_LOCALE: ${APP_LOCALE:-en}
-      APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:-en}
-
-      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
-
-      DB_CONNECTION: pgsql
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_DATABASE: ${DB_DATABASE:-profolio}
-      DB_USERNAME: ${DB_USERNAME:-profolio}
-      DB_PASSWORD: ${DB_PASSWORD:-secret}
-
-      SESSION_DRIVER: ${SESSION_DRIVER:-database}
-      SESSION_ENCRYPT: ${SESSION_ENCRYPT:-false}
-      CACHE_STORE: ${CACHE_STORE:-database}
-      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
-
-      MAIL_MAILER: ${MAIL_MAILER:-log}
-      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-hello@example.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Proto Folio}
-
-      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
-      SEED_DEFAULTS: ${SEED_DEFAULTS:-true}
-      APP_OPTIMIZE: ${APP_OPTIMIZE:-true}
+    environment: *app-environment
 
     volumes:
       - storage:/var/www/html/storage
 
     depends_on:
       db:
+        condition: service_healthy
+
+  worker:
+    image: proto-folio:latest
+    restart: unless-stopped
+
+    # Let an in-flight job finish before Docker sends SIGKILL.
+    stop_grace_period: 45s
+
+    # Runs as www-data so the shared storage volume keeps consistent ownership.
+    # The entrypoint only runs migrations/setup when the first argument is
+    # php-fpm, so this container just starts the queue loop.
+    command: ["su-exec", "www-data", "php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=30", "--max-time=3600"]
+
+    environment: *app-environment
+
+    volumes:
+      - storage:/var/www/html/storage
+
+    # The web healthcheck only passes once the app container has finished its
+    # entrypoint, so the queue never starts before the jobs table exists.
+    depends_on:
+      web:
         condition: service_healthy
 
   web:

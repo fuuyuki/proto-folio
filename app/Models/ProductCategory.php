@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Observers\ProductCategoryObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  */
 #[Fillable(['parent_id', 'name', 'slug', 'sort_order', 'is_active'])]
+#[ObservedBy([ProductCategoryObserver::class])]
 class ProductCategory extends Model
 {
     /**
