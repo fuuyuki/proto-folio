@@ -26,6 +26,10 @@ test('a signed invoice link shows a qris code for the invoice amount', function 
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('payments/Show')
             ->where('invoice.number', $invoice->number)
+            ->where('order.status', 'sent')
+            ->where('order.label', 'Sent')
+            ->where('order.fulfillment', null)
+            ->has('order.steps', 6)
             ->where('paid', false)
             ->where('qris_error', null)
             ->where('qris_data_uri', fn (mixed $value): bool => is_string($value)
@@ -95,5 +99,39 @@ test('a draft invoice cannot be paid yet', function () {
             ->where('qris_data_uri', null)
             ->where('qris_error', fn (mixed $value): bool => is_string($value)
                 && str_contains($value, 'not ready'))
+        );
+});
+
+test('a shipment order shows the shipped label at the ready stage', function () {
+    $invoice = Invoice::factory()->sent()->create([
+        'order_status' => 'ready',
+        'fulfillment' => 'shipment',
+    ]);
+
+    $url = URL::signedRoute('payments.show', ['invoice' => $invoice->number]);
+
+    $this->get($url)
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('order.status', 'ready')
+            ->where('order.label', 'Shipped')
+            ->where('order.steps.4.key', 'ready')
+            ->where('order.steps.4.label', 'Shipped')
+        );
+});
+
+test('a pickup order shows the pickup label at the ready stage', function () {
+    $invoice = Invoice::factory()->sent()->create([
+        'order_status' => 'ready',
+        'fulfillment' => 'pickup',
+    ]);
+
+    $url = URL::signedRoute('payments.show', ['invoice' => $invoice->number]);
+
+    $this->get($url)
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('order.label', 'Pickup')
+            ->where('order.steps.4.label', 'Pickup')
         );
 });

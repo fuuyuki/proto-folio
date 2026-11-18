@@ -111,6 +111,7 @@
                         <th class="px-4 py-3 font-medium">Customer</th>
                         <th class="px-4 py-3 font-medium">Issued</th>
                         <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 font-medium">Order</th>
                         <th class="px-4 py-3 text-right font-medium">Total</th>
                         <th class="px-4 py-3 text-right font-medium">Actions</th>
                     </tr>
@@ -137,6 +138,9 @@
                                     status={invoice.status}
                                     label={statusLabel(invoice.status)}
                                 />
+                            </td>
+                            <td class="px-4 py-3 text-muted-foreground">
+                                {invoice.order_status_label}
                             </td>
                             <td
                                 class="px-4 py-3 text-right font-mono tabular-nums"

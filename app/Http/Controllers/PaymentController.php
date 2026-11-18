@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Models\Invoice;
 use App\Models\Setting;
 use App\Support\BusinessProfile;
@@ -27,6 +28,7 @@ class PaymentController extends Controller
 
         $paid = $invoice->status === InvoiceStatus::Paid;
         $payable = $invoice->status === InvoiceStatus::Sent;
+        $orderStatus = $invoice->order_status ?? OrderStatus::Sent;
         $qrisDataUri = null;
         $qrisError = null;
 
@@ -66,6 +68,12 @@ class PaymentController extends Controller
                 'issue_date' => $invoice->issue_date?->toDateString(),
                 'total' => (float) $invoice->total_amount,
                 'customer_name' => $invoice->customer?->name,
+            ],
+            'order' => [
+                'status' => $orderStatus->value,
+                'label' => $orderStatus->label($invoice->fulfillment),
+                'fulfillment' => $invoice->fulfillment,
+                'steps' => OrderStatus::steps($invoice->fulfillment),
             ],
             'paid' => $paid,
             'qris_data_uri' => $qrisDataUri,

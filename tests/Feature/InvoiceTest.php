@@ -253,3 +253,37 @@ test('updating an invoice recalculates and can clear the discount', function () 
         ->and($invoice->discount_amount)->toBe('0.00')
         ->and($invoice->total_amount)->toBe('200.00');
 });
+
+test('the invoice show page exposes order progress options', function () {
+    $invoice = Invoice::factory()->create([
+        'fulfillment' => 'shipment',
+        'order_status' => 'ready',
+    ]);
+
+    $this->get(route('invoices.show', $invoice))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('invoices/Show')
+            ->where('invoice.order_status', 'ready')
+            ->where('invoice.order_status_label', 'Shipped')
+            ->has('orderStatuses', 6)
+        );
+});
+
+test('the order progress can be updated', function () {
+    $invoice = Invoice::factory()->create();
+
+    $this->patch(route('invoices.progress', $invoice), [
+        'order_status' => 'printing',
+    ])->assertRedirect(route('invoices.show', $invoice));
+
+    expect($invoice->refresh()->order_status->value)->toBe('printing');
+});
+
+test('the order progress must be a known status', function () {
+    $invoice = Invoice::factory()->create();
+
+    $this->patch(route('invoices.progress', $invoice), [
+        'order_status' => 'shipped',
+    ])->assertSessionHasErrors('order_status');
+});

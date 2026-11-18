@@ -24,6 +24,8 @@ Route::middleware(['auth'])->group(function () {
     Route::inertia('documents', 'documents/Index')->name('documents.index');
 
     Route::resource('invoices', InvoiceController::class);
+    Route::patch('invoices/{invoice}/progress', [InvoiceController::class, 'updateProgress'])
+        ->name('invoices.progress');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
 
     Route::resource('customers', CustomerController::class)->except(['show']);

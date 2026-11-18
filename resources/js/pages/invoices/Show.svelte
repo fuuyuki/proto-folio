@@ -16,24 +16,29 @@
 </script>
 
 <script lang="ts">
-    import { Link, page } from '@inertiajs/svelte';
+    import { Link, page, router } from '@inertiajs/svelte';
     import Printer from '@lucide/svelte/icons/printer';
+    import { untrack } from 'svelte';
     import AppHead from '@/components/AppHead.svelte';
     import AppPage from '@/components/AppPage.svelte';
     import ConfirmDeleteButton from '@/components/ConfirmDeleteButton.svelte';
     import InvoiceStatusBadge from '@/components/InvoiceStatusBadge.svelte';
     import { Button } from '@/components/ui/button';
+    import { Label } from '@/components/ui/label';
+    import { NativeSelect } from '@/components/ui/native-select';
     import { formatMoney } from '@/lib/currency';
     import {
         destroy,
         edit,
         index,
         print as printInvoice,
+        progress,
     } from '@/routes/invoices';
     import type {
         Invoice,
         InvoiceLineOutput,
         InvoiceStatus,
+        OrderStatus,
     } from '@/types';
 
     let {
@@ -41,12 +46,38 @@
         items,
         labels,
         statuses,
+        orderStatuses,
     }: {
         invoice: Invoice;
         items: InvoiceLineOutput[];
         labels: Record<string, string>;
         statuses: { value: InvoiceStatus; label: string }[];
+        orderStatuses: { value: OrderStatus; label: string }[];
     } = $props();
+
+    let orderStatus = $state<OrderStatus>(
+        untrack(() => invoice.order_status),
+    );
+    let savingProgress = $state(false);
+
+    $effect(() => {
+        orderStatus = invoice.order_status;
+    });
+
+    function saveProgress(event: SubmitEvent): void {
+        event.preventDefault();
+        savingProgress = true;
+        router.patch(
+            progress(invoice.id).url,
+            { order_status: orderStatus },
+            {
+                preserveScroll: true,
+                onFinish: () => {
+                    savingProgress = false;
+                },
+            },
+        );
+    }
 
     function formatDate(value: string | null): string {
         if (!value) {
@@ -157,6 +188,44 @@
             </p>
         </section>
     </div>
+
+    <section class="rounded-xl border border-border bg-card p-6">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h2 class="text-sm font-semibold">{labels.order_progress}</h2>
+                <p class="mt-1 text-xs text-muted-foreground">
+                    {labels.order_progress_description}
+                </p>
+            </div>
+            <span
+                class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground"
+            >
+                {invoice.order_status_label}
+            </span>
+        </div>
+
+        <form
+            class="mt-4 flex flex-wrap items-end gap-3"
+            onsubmit={saveProgress}
+        >
+            <div class="grid gap-2">
+                <Label for="order_status">{labels.status}</Label>
+                <NativeSelect
+                    id="order_status"
+                    class="w-48"
+                    bind:value={orderStatus}
+                >
+                    {#each orderStatuses as option (option.value)}
+                        <option value={option.value}>{option.label}</option>
+                    {/each}
+                </NativeSelect>
+            </div>
+
+            <Button type="submit" disabled={savingProgress}>
+                {savingProgress ? 'Saving…' : labels.update_progress}
+            </Button>
+        </form>
+    </section>
 
     <div class="overflow-x-auto rounded-xl border border-border bg-card">
         <table class="w-full text-sm">

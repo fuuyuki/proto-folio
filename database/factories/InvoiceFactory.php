@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -28,6 +29,8 @@ class InvoiceFactory extends Factory
             'customer_id' => Customer::factory(),
             'number' => 'INV-'.fake()->unique()->numerify('######'),
             'status' => InvoiceStatus::Draft,
+            'order_status' => OrderStatus::Sent,
+            'fulfillment' => null,
             'issue_date' => $issueDate,
             'due_date' => $issueDate->copy()->addDays(14),
             'subtotal' => $subtotal,

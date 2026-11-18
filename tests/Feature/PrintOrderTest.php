@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Models\Invoice;
 use App\Models\Product;
 use Database\Seeders\PosDefaultsSeeder;
@@ -63,6 +64,8 @@ test('a public order creates a customer, invoice, and item', function () {
     $product = Product::query()->where('slug', 'custom-3d-printing')->firstOrFail();
 
     expect($invoice->status)->toBe(InvoiceStatus::Sent)
+        ->and($invoice->order_status)->toBe(OrderStatus::Sent)
+        ->and($invoice->fulfillment)->toBe('pickup')
         ->and($invoice->customer->name)->toBe('Nadia Putri')
         ->and($invoice->customer->email)->toBe('nadia@example.com')
         ->and($invoice->customer->phone)->toBe('+62 812 3456 7890')
@@ -101,6 +104,7 @@ test('a shipment order stores the address on the customer and the notes', functi
     $address = $invoice->customer->address;
 
     expect($address)->toContain('Jl. Merdeka 10')
+        ->and($invoice->fulfillment)->toBe('shipment')
         ->and($address)->toContain('Floor 3, reception')
         ->and($address)->toContain('Bandung')
         ->and($address)->toContain('40111')

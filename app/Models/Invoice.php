@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $number
  * @property string|null $idempotency_key
  * @property InvoiceStatus $status
+ * @property OrderStatus $order_status
+ * @property string|null $fulfillment
  * @property Carbon $issue_date
  * @property Carbon|null $due_date
  * @property string $subtotal
@@ -30,11 +34,18 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['customer_id', 'number', 'idempotency_key', 'status', 'issue_date', 'due_date', 'subtotal', 'discount_type', 'discount_value', 'discount_amount', 'tax_amount', 'total_amount', 'notes'])]
+#[Fillable(['customer_id', 'number', 'idempotency_key', 'status', 'order_status', 'fulfillment', 'issue_date', 'due_date', 'subtotal', 'discount_type', 'discount_value', 'discount_amount', 'tax_amount', 'total_amount', 'notes'])]
 class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
     use HasFactory;
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['order_status_label'];
 
     /**
      * Get the attributes that should be cast.
@@ -45,6 +56,7 @@ class Invoice extends Model
     {
         return [
             'status' => InvoiceStatus::class,
+            'order_status' => OrderStatus::class,
             'issue_date' => 'date',
             'due_date' => 'date',
             'subtotal' => 'decimal:2',
@@ -54,6 +66,16 @@ class Invoice extends Model
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
+    }
+
+    /**
+     * The human-readable progress label for this invoice.
+     */
+    protected function orderStatusLabel(): Attribute
+    {
+        return Attribute::get(fn (): string => $this->order_status instanceof OrderStatus
+            ? $this->order_status->label($this->fulfillment)
+            : __('invoice.order_statuses.sent'));
     }
 
     /**

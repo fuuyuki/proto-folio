@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\NumberSequences\GenerateSequenceNumber;
 use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Http\Requests\InvoiceRequest;
 use App\Models\Customer;
 use App\Models\Invoice;
@@ -14,6 +15,7 @@ use App\Support\BusinessProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -100,7 +102,26 @@ class InvoiceController extends Controller
             'items' => $this->presentItems($invoice),
             'labels' => $this->invoiceLabels(),
             'statuses' => $this->statuses(),
+            'orderStatuses' => $this->orderStatuses($invoice),
         ]);
+    }
+
+    /**
+     * Update the fulfillment progress shown to the customer.
+     */
+    public function updateProgress(Request $request, Invoice $invoice): RedirectResponse
+    {
+        $validated = $request->validate([
+            'order_status' => ['required', Rule::enum(OrderStatus::class)],
+        ]);
+
+        $invoice->update([
+            'order_status' => OrderStatus::from($validated['order_status']),
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Order progress updated.')]);
+
+        return to_route('invoices.show', $invoice);
     }
 
     /**
@@ -298,6 +319,9 @@ class InvoiceController extends Controller
             'print' => __('invoice.print'),
             'print_receipt' => __('invoice.print_receipt'),
             'back_to_invoice' => __('invoice.back_to_invoice'),
+            'order_progress' => __('invoice.order_progress'),
+            'order_progress_description' => __('invoice.order_progress_description'),
+            'update_progress' => __('invoice.update_progress'),
         ];
     }
 
@@ -314,6 +338,22 @@ class InvoiceController extends Controller
                 'label' => $case->label(),
             ],
             InvoiceStatus::cases(),
+        );
+    }
+
+    /**
+     * The fulfillment progress options for one invoice.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function orderStatuses(Invoice $invoice): array
+    {
+        return array_map(
+            fn (OrderStatus $case): array => [
+                'value' => $case->value,
+                'label' => $case->label($invoice->fulfillment),
+            ],
+            OrderStatus::cases(),
         );
     }
 

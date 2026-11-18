@@ -5,6 +5,7 @@ namespace App\Actions\Orders;
 use App\Actions\NumberSequences\GenerateSequenceNumber;
 use App\Enums\DiscountType;
 use App\Enums\InvoiceStatus;
+use App\Enums\OrderStatus;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -67,6 +68,8 @@ class CreatePrintOrder
             'number' => $this->generateNumber->handle('invoice'),
             'idempotency_key' => $data['idempotency_key'],
             'status' => InvoiceStatus::Sent,
+            'order_status' => OrderStatus::Sent,
+            'fulfillment' => $data['fulfillment'],
             'issue_date' => now()->toDateString(),
             'due_date' => now()->toDateString(),
             'subtotal' => $price,

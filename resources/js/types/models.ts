@@ -110,6 +110,14 @@ export type TaxRate = {
 
 export type InvoiceStatus = 'draft' | 'sent' | 'paid';
 
+export type OrderStatus =
+    | 'sent'
+    | 'queued'
+    | 'printing'
+    | 'packaging'
+    | 'ready'
+    | 'done';
+
 export type DiscountType = 'none' | 'percent' | 'amount';
 
 export type Invoice = {
@@ -117,6 +125,9 @@ export type Invoice = {
     customer_id: number;
     number: string;
     status: InvoiceStatus;
+    order_status: OrderStatus;
+    order_status_label: string;
+    fulfillment: 'pickup' | 'shipment' | null;
     issue_date: string;
     due_date: string | null;
     subtotal: string;

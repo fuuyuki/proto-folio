@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { usePoll } from '@inertiajs/svelte';
     import { formatMoney } from '@/lib/currency';
 
     type Business = {
@@ -15,19 +16,47 @@
         customer_name: string | null;
     };
 
+    type OrderStep = {
+        key: string;
+        label: string;
+        description: string;
+    };
+
+    type OrderProgress = {
+        status: string;
+        label: string;
+        fulfillment: 'pickup' | 'shipment' | null;
+        steps: OrderStep[];
+    };
+
     let {
         business,
         invoice,
+        order,
         paid,
         qris_data_uri,
         qris_error,
     }: {
         business: Business;
         invoice: InvoiceSummary;
+        order: OrderProgress;
         paid: boolean;
         qris_data_uri: string | null;
         qris_error: string | null;
     } = $props();
+
+    usePoll(
+        15_000,
+        { only: ['order', 'paid'] },
+        { background: 'pause' },
+    );
+
+    const currentStep = $derived(
+        Math.max(
+            0,
+            order.steps.findIndex((step) => step.key === order.status),
+        ),
+    );
 
     const issued = $derived(
         invoice.issue_date
@@ -105,14 +134,77 @@
                 </div>
             {/if}
 
+            <section
+                class="mt-6 border-t pt-6"
+                data-order-status={order.status}
+            >
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                    <div>
+                        <h2 class="text-sm font-semibold">Order progress</h2>
+                        <p
+                            class="mt-1 text-sm text-muted-foreground"
+                            aria-live="polite"
+                        >
+                            {order.label}
+                        </p>
+                    </div>
+                    <span
+                        class="font-mono text-[10px] tracking-wide text-muted-foreground uppercase"
+                    >
+                        Updates automatically
+                    </span>
+                </div>
+
+                <ol class="mt-4 space-y-3">
+                    {#each order.steps as step, index (step.key)}
+                        {@const state =
+                            index < currentStep
+                                ? 'done'
+                                : index === currentStep
+                                  ? 'current'
+                                  : 'upcoming'}
+                        <li
+                            class="flex gap-3"
+                            data-step-key={step.key}
+                            data-step-state={state}
+                        >
+                            <span
+                                class="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold {state ===
+                                'done'
+                                    ? 'border-status-paid bg-status-paid text-white'
+                                    : state === 'current'
+                                      ? 'border-primary bg-primary text-primary-foreground'
+                                      : 'border-border bg-muted text-muted-foreground'}"
+                            >
+                                {#if state === 'done'}✓{:else}{index + 1}{/if}
+                            </span>
+                            <div class="min-w-0">
+                                <p
+                                    class={state === 'upcoming'
+                                        ? 'text-sm text-muted-foreground'
+                                        : 'text-sm font-medium'}
+                                >
+                                    {step.label}
+                                </p>
+                                <p
+                                    class="mt-0.5 text-xs leading-relaxed text-muted-foreground"
+                                >
+                                    {step.description}
+                                </p>
+                            </div>
+                        </li>
+                    {/each}
+                </ol>
+            </section>
+
             <dl class="mt-6 grid gap-3 border-t pt-4 text-sm">
                 <div class="flex justify-between gap-4">
                     <dt class="text-muted-foreground">Customer</dt>
                     <dd>{invoice.customer_name ?? '—'}</dd>
                 </div>
                 <div class="flex justify-between gap-4">
-                    <dt class="text-muted-foreground">Status</dt>
-                    <dd>{invoice.status_label}</dd>
+                    <dt class="text-muted-foreground">Payment</dt>
+                    <dd>{paid ? 'Paid' : 'Awaiting payment'}</dd>
                 </div>
                 <div class="flex justify-between gap-4">
                     <dt class="text-muted-foreground">Issued</dt>
@@ -121,8 +213,13 @@
             </dl>
 
             <p class="mt-6 text-xs leading-relaxed text-muted-foreground">
-                Keep this page open until your payment is confirmed. If the QR
-                does not work, contact us with invoice {invoice.number}.
+                {#if paid}
+                    This page updates automatically as your order moves
+                    through production.
+                {:else}
+                    Keep this page open until your payment is confirmed. If the
+                    QR does not work, contact us with invoice {invoice.number}.
+                {/if}
             </p>
         </section>
 
