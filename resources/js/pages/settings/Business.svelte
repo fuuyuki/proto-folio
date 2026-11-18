@@ -25,8 +25,10 @@
 
     let {
         business,
+        qris_payload = '',
     }: {
         business: BusinessProfile;
+        qris_payload?: string;
     } = $props();
 </script>
 
@@ -67,6 +69,29 @@
                     Line breaks are kept exactly as typed on the receipt.
                 </p>
                 <InputError message={errors.address} />
+            </div>
+
+            <Heading
+                variant="small"
+                title="QRIS payments"
+                description="Used by the public 3D print order page. Customers scan a QR with the invoice amount already filled in."
+            />
+
+            <div class="grid gap-2">
+                <Label for="qris_payload">Static QRIS payload</Label>
+                <Textarea
+                    id="qris_payload"
+                    name="qris_payload"
+                    rows={6}
+                    value={qris_payload}
+                    placeholder="000201010211..."
+                    spellcheck="false"
+                />
+                <p class="text-xs text-muted-foreground">
+                    Paste the complete static QRIS string from your merchant
+                    app. Leave it blank to disable QRIS on new orders.
+                </p>
+                <InputError message={errors.qris_payload} />
             </div>
         </div>
 

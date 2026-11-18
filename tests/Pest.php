@@ -48,3 +48,49 @@ function something()
 {
     // ..
 }
+
+/**
+ * Build a well-formed static QRIS payload for tests.
+ */
+function make_qris_payload(?string $amount = null): string
+{
+    $tags = [
+        '000201',
+        '010211',
+        '52044812',
+        '5303360',
+        '5802ID',
+        '5912PROTOFY LABS',
+        '6007JAKARTA',
+    ];
+
+    if ($amount !== null) {
+        $tags[] = '54'.str_pad((string) strlen($amount), 2, '0', STR_PAD_LEFT).$amount;
+    }
+
+    $base = implode('', $tags).'6304';
+
+    return $base.qris_crc16($base);
+}
+
+/**
+ * CRC-16/CCITT-FALSE used by QRIS.
+ */
+function qris_crc16(string $data): string
+{
+    $crc = 0xFFFF;
+
+    for ($index = 0; $index < strlen($data); $index++) {
+        $crc ^= ord($data[$index]) << 8;
+
+        for ($bit = 0; $bit < 8; $bit++) {
+            $crc = ($crc & 0x8000) !== 0
+                ? (($crc << 1) ^ 0x1021)
+                : ($crc << 1);
+
+            $crc &= 0xFFFF;
+        }
+    }
+
+    return strtoupper(str_pad(dechex($crc), 4, '0', STR_PAD_LEFT));
+}

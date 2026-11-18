@@ -256,6 +256,18 @@ requests. The token must match `REBUILD_TOKEN` in the website's
 `/opt/protofylabs-api/.env`; see `deploy/rebuild` in the site repository for the
 host-side units and script.
 
+Public 3D print orders use `POST /api/v1/orders/3d-print`. Allow the site's
+origin in `.env.docker`:
+
+```dotenv
+CORS_ALLOWED_ORIGINS=https://protofylabs.web.id
+```
+
+After the app is running, open **Business details** in the admin and paste the
+static QRIS payload from the merchant app. The payload is validated and stored
+in the `settings` table; each order gets a QR with the invoice amount already
+filled in. Leave it blank to create invoices without a payable QR.
+
 ```sh
 docker compose --env-file .env.docker up -d --build
 docker compose --env-file .env.docker ps

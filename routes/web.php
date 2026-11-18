@@ -3,6 +3,7 @@
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TaxRateController;
@@ -11,6 +12,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))
     ->name('home');
+
+Route::get('pay/{invoice:number}', PaymentController::class)
+    ->middleware('signed')
+    ->name('payments.show');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');

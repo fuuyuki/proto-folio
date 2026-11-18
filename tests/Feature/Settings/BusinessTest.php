@@ -12,6 +12,7 @@ beforeEach(function () {
 test('the business settings page shows the stored details', function () {
     Setting::query()->create(['key' => 'business_name', 'value' => 'Kopi Senja', 'type' => 'string']);
     Setting::query()->create(['key' => 'business_address', 'value' => "Jl. Merdeka 10\nBandung", 'type' => 'text']);
+    Setting::query()->create(['key' => 'qris_payload', 'value' => make_qris_payload(), 'type' => 'text']);
 
     $this->get(route('business.edit'))
         ->assertOk()
@@ -19,6 +20,7 @@ test('the business settings page shows the stored details', function () {
             ->component('settings/Business')
             ->where('business.name', 'Kopi Senja')
             ->where('business.address', "Jl. Merdeka 10\nBandung")
+            ->where('qris_payload', make_qris_payload())
         );
 });
 
@@ -46,6 +48,26 @@ test('the business name is required', function () {
         ->assertSessionHasErrors('name');
 
     expect(Setting::query()->where('key', 'business_name')->exists())->toBeFalse();
+});
+
+test('a qris payload can be saved', function () {
+    $payload = make_qris_payload();
+
+    $this->put(route('business.update'), [
+        'name' => 'Kopi Senja',
+        'qris_payload' => $payload,
+    ])->assertRedirect(route('business.edit'));
+
+    expect(Setting::query()->where('key', 'qris_payload')->value('value'))->toBe($payload);
+});
+
+test('an invalid qris payload is rejected', function () {
+    $this->put(route('business.update'), [
+        'name' => 'Kopi Senja',
+        'qris_payload' => 'not-a-qris-payload',
+    ])->assertSessionHasErrors('qris_payload');
+
+    expect(Setting::query()->where('key', 'qris_payload')->exists())->toBeFalse();
 });
 
 test('the printed receipt uses the business details', function () {
