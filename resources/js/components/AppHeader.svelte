@@ -100,11 +100,7 @@
                     <SheetContent side="left" class="w-[300px] p-6">
                         <SheetTitle class="sr-only">Navigation menu</SheetTitle>
                         <SheetHeader class="flex justify-start text-left">
-                            <img
-                                src="/favicon.svg"
-                                alt=""
-                                class="size-6 dark:invert"
-                            />
+                            <AppLogo />
                         </SheetHeader>
                         <div
                             class="flex h-full flex-1 flex-col justify-between space-y-4 pt-6 pb-10"

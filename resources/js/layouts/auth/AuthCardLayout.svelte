@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Link } from '@inertiajs/svelte';
+    import { Link, page } from '@inertiajs/svelte';
     import type { Snippet } from 'svelte';
     import {
         Card,
@@ -19,6 +19,8 @@
         description?: string;
         children?: Snippet;
     } = $props();
+
+    const name = $derived(page.props.name);
 </script>
 
 <div
@@ -29,7 +31,16 @@
             href={home()}
             class="flex items-center gap-2 self-center font-medium"
         >
-            <img src="/favicon.svg" alt="" class="size-9 dark:invert" />
+            <img
+                src="/protofolio-text.svg"
+                alt={name}
+                class="h-12 w-auto dark:hidden"
+            />
+            <img
+                src="/protofolio-text-white.svg"
+                alt={name}
+                class="hidden h-12 w-auto dark:block"
+            />
         </Link>
 
         <div class="flex flex-col gap-6">

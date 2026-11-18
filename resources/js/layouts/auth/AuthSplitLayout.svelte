@@ -28,11 +28,10 @@
             class="relative z-20 flex items-center text-lg font-medium"
         >
             <img
-                src="/favicon.svg"
-                alt=""
-                class="mr-2 size-8 invert"
+                src="/protofolio-text-white.svg"
+                alt={name}
+                class="h-10 w-auto"
             />
-            {name}
         </Link>
     </div>
     <div class="lg:p-8">
