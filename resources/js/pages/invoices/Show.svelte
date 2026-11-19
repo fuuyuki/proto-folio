@@ -17,6 +17,7 @@
 
 <script lang="ts">
     import { Link, page, router } from '@inertiajs/svelte';
+    import Download from '@lucide/svelte/icons/download';
     import Printer from '@lucide/svelte/icons/printer';
     import { untrack } from 'svelte';
     import AppHead from '@/components/AppHead.svelte';
@@ -31,6 +32,7 @@
         destroy,
         edit,
         index,
+        model as modelDownload,
         print as printInvoice,
         progress,
     } from '@/routes/invoices';
@@ -93,6 +95,22 @@
 
     function formatQuantity(value: string): string {
         return Number.parseFloat(value).toString();
+    }
+
+    function formatBytes(bytes: number | null): string {
+        if (!bytes) {
+            return '—';
+        }
+
+        if (bytes < 1024) {
+            return `${bytes} B`;
+        }
+
+        if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} KB`;
+        }
+
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     function statusLabel(status: InvoiceStatus): string {
@@ -226,6 +244,40 @@
             </Button>
         </form>
     </section>
+
+    {#if invoice.model_name}
+        <section class="rounded-xl border border-border bg-card p-6">
+            <div
+                class="flex flex-wrap items-center justify-between gap-3"
+            >
+                <div>
+                    <h2 class="text-sm font-semibold">{labels.model}</h2>
+                    <p class="mt-1 text-xs text-muted-foreground">
+                        {labels.model_description}
+                    </p>
+                    <p class="mt-2 font-mono text-sm">
+                        {invoice.model_name}
+                        <span class="text-muted-foreground">
+                            · {formatBytes(invoice.model_size)}
+                        </span>
+                    </p>
+                </div>
+
+                <Button variant="secondary" asChild>
+                    {#snippet children(props)}
+                        <a
+                            {...props}
+                            href={modelDownload(invoice.id).url}
+                            class={props.class}
+                        >
+                            <Download class="size-4" />
+                            {labels.download_model}
+                        </a>
+                    {/snippet}
+                </Button>
+            </div>
+        </section>
+    {/if}
 
     <div class="overflow-x-auto rounded-xl border border-border bg-card">
         <table class="w-full text-sm">

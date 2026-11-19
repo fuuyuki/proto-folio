@@ -268,6 +268,10 @@ static QRIS payload from the merchant app. The payload is validated and stored
 in the `settings` table; each order gets a QR with the invoice amount already
 filled in. Leave it blank to create invoices without a payable QR.
 
+Each order also uploads the original STL or 3MF (maximum 20 MB). The file is
+stored on the private `local` disk and can be downloaded from the invoice by an
+authenticated admin; it is never exposed on the public payment page.
+
 ```sh
 docker compose --env-file .env.docker up -d --build
 docker compose --env-file .env.docker ps

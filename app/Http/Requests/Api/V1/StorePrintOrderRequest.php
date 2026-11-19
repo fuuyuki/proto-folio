@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Rules\ThreeDModelFile;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -47,6 +48,7 @@ class StorePrintOrderRequest extends FormRequest
 
             'model.name' => ['required', 'string', 'max:255'],
             'model.size' => ['nullable', 'string', 'max:100'],
+            'model.file' => ['required', 'file', 'max:20480', new ThreeDModelFile],
 
             'print' => ['required', 'array'],
             'print.filament_name' => ['required', 'string', 'max:100'],
@@ -70,6 +72,7 @@ class StorePrintOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'model.file.max' => 'The model file may not be larger than 20 MB.',
             'shipping.postal_code.regex' => 'The postal code must be five digits.',
             'customer.whatsapp.regex' => 'Enter a valid WhatsApp number.',
             'website.prohibited' => 'This request could not be processed.',

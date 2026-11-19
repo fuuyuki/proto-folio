@@ -15,9 +15,11 @@ use App\Support\BusinessProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
@@ -104,6 +106,24 @@ class InvoiceController extends Controller
             'statuses' => $this->statuses(),
             'orderStatuses' => $this->orderStatuses($invoice),
         ]);
+    }
+
+    /**
+     * Download the private 3D model attached to an order.
+     */
+    public function downloadModel(Invoice $invoice): StreamedResponse
+    {
+        abort_unless(filled($invoice->model_path), 404);
+
+        $disk = Storage::disk('local');
+
+        abort_unless($disk->exists($invoice->model_path), 404);
+
+        return $disk->download(
+            $invoice->model_path,
+            $invoice->model_name ?? 'model.stl',
+            ['Content-Type' => $invoice->model_mime ?? 'application/octet-stream'],
+        );
     }
 
     /**
@@ -322,6 +342,9 @@ class InvoiceController extends Controller
             'order_progress' => __('invoice.order_progress'),
             'order_progress_description' => __('invoice.order_progress_description'),
             'update_progress' => __('invoice.update_progress'),
+            'model' => __('invoice.model'),
+            'model_description' => __('invoice.model_description'),
+            'download_model' => __('invoice.download_model'),
         ];
     }
 

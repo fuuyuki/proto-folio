@@ -29,6 +29,9 @@ return [
     'order_progress' => 'Progres pesanan',
     'order_progress_description' => 'Tahap ini ditampilkan di halaman pembayaran pelanggan.',
     'update_progress' => 'Perbarui progres',
+    'model' => 'Model 3D',
+    'model_description' => 'Diunggah pelanggan bersama pesanan ini. Disimpan privat.',
+    'download_model' => 'Unduh model',
     'order_statuses' => [
         'sent' => 'Terkirim',
         'queued' => 'Dalam antrean',

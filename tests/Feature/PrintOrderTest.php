@@ -6,10 +6,13 @@ use App\Models\Invoice;
 use App\Models\Product;
 use Database\Seeders\PosDefaultsSeeder;
 use Database\Seeders\PublicCatalogSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(PosDefaultsSeeder::class);
     $this->seed(PublicCatalogSeeder::class);
+    Storage::fake('local');
 });
 
 /**
@@ -32,6 +35,7 @@ function print_order_payload(array $overrides = []): array
         'model' => [
             'name' => 'bracket.stl',
             'size' => '120 × 80 × 40 mm',
+            'file' => UploadedFile::fake()->create('bracket.stl', 10, 'model/stl'),
         ],
         'print' => [
             'filament_name' => 'PLA',
@@ -50,7 +54,7 @@ test('a public order creates a customer, invoice, and item', function () {
 
     $response = $this->withHeaders([
         'Origin' => 'https://protofylabs.web.id',
-    ])->postJson(route('api.v1.orders.print'), $payload)
+    ])->post(route('api.v1.orders.print'), $payload)
         ->assertCreated()
         ->assertHeader('Access-Control-Allow-Origin', 'https://protofylabs.web.id')
         ->assertJsonStructure([
@@ -79,8 +83,12 @@ test('a public order creates a customer, invoice, and item', function () {
         ->and($invoice->notes)->toContain('Fulfillment: Pickup')
         ->and($invoice->notes)->toContain('70% infill')
         ->and($invoice->notes)->toContain('Customer note:')
+        ->and($invoice->model_name)->toBe('bracket.stl')
+        ->and($invoice->model_size)->toBeGreaterThan(0)
         ->and($response->json('payment_url'))->toContain('/pay/')
         ->and($response->json('invoice_number'))->toBe($invoice->number);
+
+    Storage::disk('local')->assertExists($invoice->model_path);
 
     $this->get($response->json('payment_url'))->assertOk();
 });
@@ -98,7 +106,7 @@ test('a shipment order stores the address on the customer and the notes', functi
         ],
     ]);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)->assertCreated();
+    $this->post(route('api.v1.orders.print'), $payload)->assertCreated();
 
     $invoice = Invoice::query()->with('customer')->firstOrFail();
     $address = $invoice->customer->address;
@@ -114,17 +122,20 @@ test('a shipment order stores the address on the customer and the notes', functi
 });
 
 test('a repeated idempotency key returns the same invoice', function () {
-    $payload = print_order_payload();
+    $first = $this->post(
+        route('api.v1.orders.print'),
+        print_order_payload(['idempotency_key' => 'repeat-order-1']),
+    )->assertCreated();
 
-    $first = $this->postJson(route('api.v1.orders.print'), $payload)
-        ->assertCreated();
-
-    $second = $this->postJson(route('api.v1.orders.print'), $payload)
-        ->assertCreated();
+    $second = $this->post(
+        route('api.v1.orders.print'),
+        print_order_payload(['idempotency_key' => 'repeat-order-1']),
+    )->assertCreated();
 
     expect(Invoice::query()->count())->toBe(1)
         ->and($second->json('invoice_number'))->toBe($first->json('invoice_number'))
-        ->and($second->json('payment_url'))->toBe($first->json('payment_url'));
+        ->and($second->json('payment_url'))->toBe($first->json('payment_url'))
+        ->and(Storage::disk('local')->allFiles())->toHaveCount(1);
 });
 
 test('a shipment order requires the address', function () {
@@ -133,7 +144,7 @@ test('a shipment order requires the address', function () {
         'shipping' => null,
     ]);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)
+    $this->post(route('api.v1.orders.print'), $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors([
             'shipping.label',
@@ -158,7 +169,7 @@ test('the postal code must be five digits', function () {
         ],
     ]);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)
+    $this->post(route('api.v1.orders.print'), $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors('shipping.postal_code');
 });
@@ -172,7 +183,7 @@ test('the customer contact details are required', function () {
         ],
     ]);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)
+    $this->post(route('api.v1.orders.print'), $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors([
             'customer.name',
@@ -184,7 +195,7 @@ test('the customer contact details are required', function () {
 test('the anti-spam honeypot rejects a filled value', function () {
     $payload = print_order_payload(['website' => 'https://spam.example']);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)
+    $this->post(route('api.v1.orders.print'), $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors('website');
 });
@@ -194,7 +205,46 @@ test('a price below the minimum is rejected', function () {
         'print' => ['price' => 500],
     ]);
 
-    $this->postJson(route('api.v1.orders.print'), $payload)
+    $this->post(route('api.v1.orders.print'), $payload)
         ->assertUnprocessable()
         ->assertJsonValidationErrors('print.price');
+});
+
+test('the uploaded model is required', function () {
+    $payload = print_order_payload();
+    unset($payload['model']['file']);
+
+    $this->post(route('api.v1.orders.print'), $payload)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('model.file');
+});
+
+test('a file that is not an stl or 3mf is rejected', function () {
+    $payload = print_order_payload([
+        'model' => [
+            'file' => UploadedFile::fake()->create('notes.txt', 1, 'text/plain'),
+        ],
+    ]);
+
+    $this->post(route('api.v1.orders.print'), $payload)
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('model.file');
+
+    expect(Invoice::query()->count())->toBe(0);
+});
+
+test('deleting an invoice deletes its private model file', function () {
+    $this->post(
+        route('api.v1.orders.print'),
+        print_order_payload(['idempotency_key' => 'delete-order-1']),
+    )->assertCreated();
+
+    $invoice = Invoice::query()->firstOrFail();
+    $path = $invoice->model_path;
+
+    Storage::disk('local')->assertExists($path);
+
+    $invoice->delete();
+
+    Storage::disk('local')->assertMissing($path);
 });

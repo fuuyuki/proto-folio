@@ -29,6 +29,9 @@ return [
     'order_progress' => 'Order progress',
     'order_progress_description' => 'This is the stage shown on the customer payment page.',
     'update_progress' => 'Update progress',
+    'model' => '3D model',
+    'model_description' => 'Uploaded by the customer with this order. Kept private.',
+    'download_model' => 'Download model',
     'order_statuses' => [
         'sent' => 'Sent',
         'queued' => 'On queue',

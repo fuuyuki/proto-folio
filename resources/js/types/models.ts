@@ -128,6 +128,9 @@ export type Invoice = {
     order_status: OrderStatus;
     order_status_label: string;
     fulfillment: 'pickup' | 'shipment' | null;
+    model_name: string | null;
+    model_mime: string | null;
+    model_size: number | null;
     issue_date: string;
     due_date: string | null;
     subtotal: string;

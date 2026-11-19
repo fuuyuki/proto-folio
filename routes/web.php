@@ -26,6 +26,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('invoices', InvoiceController::class);
     Route::patch('invoices/{invoice}/progress', [InvoiceController::class, 'updateProgress'])
         ->name('invoices.progress');
+    Route::get('invoices/{invoice}/model', [InvoiceController::class, 'downloadModel'])->name('invoices.model');
     Route::get('invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
 
     Route::resource('customers', CustomerController::class)->except(['show']);

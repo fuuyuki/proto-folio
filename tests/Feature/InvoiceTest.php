@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\User;
 use Database\Seeders\PosDefaultsSeeder;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
@@ -286,4 +287,48 @@ test('the order progress must be a known status', function () {
     $this->patch(route('invoices.progress', $invoice), [
         'order_status' => 'shipped',
     ])->assertSessionHasErrors('order_status');
+});
+
+test('the invoice show page exposes the uploaded model metadata', function () {
+    $invoice = Invoice::factory()->create([
+        'model_name' => 'bracket.stl',
+        'model_mime' => 'model/stl',
+        'model_size' => 2048,
+    ]);
+
+    $this->get(route('invoices.show', $invoice))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('invoices/Show')
+            ->where('invoice.model_name', 'bracket.stl')
+            ->where('invoice.model_size', 2048)
+            ->missing('invoice.model_path')
+        );
+});
+
+test('the uploaded model can be downloaded by an admin', function () {
+    Storage::fake('local');
+    Storage::disk('local')->put('print-orders/2026/11/bracket.stl', 'solid bracket');
+
+    $invoice = Invoice::factory()->create([
+        'model_path' => 'print-orders/2026/11/bracket.stl',
+        'model_name' => 'bracket.stl',
+        'model_mime' => 'model/stl',
+        'model_size' => 13,
+    ]);
+
+    $this->get(route('invoices.model', $invoice))
+        ->assertOk()
+        ->assertDownload('bracket.stl');
+});
+
+test('a missing model file returns not found', function () {
+    Storage::fake('local');
+
+    $invoice = Invoice::factory()->create([
+        'model_path' => 'print-orders/2026/11/missing.stl',
+        'model_name' => 'missing.stl',
+    ]);
+
+    $this->get(route('invoices.model', $invoice))->assertNotFound();
 });

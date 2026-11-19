@@ -10,7 +10,12 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class CreatePrintOrder
 {
@@ -41,17 +46,40 @@ class CreatePrintOrder
             return $existing;
         }
 
+        $file = $data['model']['file'] ?? null;
+        $path = $file instanceof UploadedFile
+            ? $file->storeAs(
+                'print-orders/'.now()->format('Y/m'),
+                Str::random(40).'.'.strtolower($file->getClientOriginalExtension()),
+                'local',
+            )
+            : null;
+
+        if ($file instanceof UploadedFile && ! $path) {
+            throw new RuntimeException('The model file could not be stored.');
+        }
+
         try {
-            return DB::transaction(fn (): Invoice => $this->create($data));
+            return DB::transaction(fn (): Invoice => $this->create($data, $path, $file instanceof UploadedFile ? $file : null));
         } catch (UniqueConstraintViolationException) {
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }
+
             return Invoice::query()->where('idempotency_key', $key)->firstOrFail();
+        } catch (Throwable $exception) {
+            if ($path) {
+                Storage::disk('local')->delete($path);
+            }
+
+            throw $exception;
         }
     }
 
     /**
      * @param  array<string, mixed>  $data
      */
-    private function create(array $data): Invoice
+    private function create(array $data, ?string $modelPath, ?UploadedFile $modelFile): Invoice
     {
         $print = $data['print'];
         $price = round((float) $print['price'], 2);
@@ -70,6 +98,10 @@ class CreatePrintOrder
             'status' => InvoiceStatus::Sent,
             'order_status' => OrderStatus::Sent,
             'fulfillment' => $data['fulfillment'],
+            'model_path' => $modelPath,
+            'model_name' => $modelFile?->getClientOriginalName() ?? $data['model']['name'],
+            'model_mime' => $modelFile?->getClientMimeType(),
+            'model_size' => $modelFile?->getSize(),
             'issue_date' => now()->toDateString(),
             'due_date' => now()->toDateString(),
             'subtotal' => $price,
