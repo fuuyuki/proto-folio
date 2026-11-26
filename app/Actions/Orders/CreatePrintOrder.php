@@ -83,13 +83,29 @@ class CreatePrintOrder
     {
         $print = $data['print'];
         $price = round((float) $print['price'], 2);
+        $email = strtolower(trim((string) $data['customer']['email']));
+        $address = $this->customerAddress($data);
 
-        $customer = Customer::query()->create([
-            'name' => $data['customer']['name'],
-            'email' => $data['customer']['email'],
-            'phone' => $data['customer']['whatsapp'],
-            'address' => $this->customerAddress($data),
-        ]);
+        // Repeat customers keep one record. Email is the public order identity.
+        $customer = Customer::query()
+            ->whereRaw('lower(trim(email)) = ?', [$email])
+            ->first();
+
+        if ($customer) {
+            $customer->update([
+                'name' => $data['customer']['name'],
+                'email' => $email,
+                'phone' => $data['customer']['whatsapp'],
+                'address' => $address ?? $customer->address,
+            ]);
+        } else {
+            $customer = Customer::query()->create([
+                'name' => $data['customer']['name'],
+                'email' => $email,
+                'phone' => $data['customer']['whatsapp'],
+                'address' => $address,
+            ]);
+        }
 
         $invoice = Invoice::query()->create([
             'customer_id' => $customer->id,

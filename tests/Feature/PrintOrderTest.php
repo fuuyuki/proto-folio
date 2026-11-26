@@ -2,6 +2,7 @@
 
 use App\Enums\InvoiceStatus;
 use App\Enums\OrderStatus;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use Database\Seeders\PosDefaultsSeeder;
@@ -247,4 +248,36 @@ test('deleting an invoice deletes its private model file', function () {
     $invoice->delete();
 
     Storage::disk('local')->assertMissing($path);
+});
+
+test('a repeat email reuses the existing customer and keeps the shipping address', function () {
+    $this->post(route('api.v1.orders.print'), print_order_payload([
+        'idempotency_key' => 'repeat-customer-1',
+        'fulfillment' => 'shipment',
+        'customer' => ['email' => 'Nadia@Example.com'],
+        'shipping' => [
+            'label' => 'Office',
+            'address' => 'Jl. Merdeka 10',
+            'detail' => 'Floor 3',
+            'city' => 'Bandung',
+            'province' => 'West Java',
+            'postal_code' => '40111',
+        ],
+    ]))->assertCreated();
+
+    $this->post(route('api.v1.orders.print'), print_order_payload([
+        'idempotency_key' => 'repeat-customer-2',
+        'customer' => [
+            'name' => 'Nadia P.',
+            'email' => 'nadia@example.com',
+        ],
+    ]))->assertCreated();
+
+    $customer = Customer::query()->firstOrFail();
+
+    expect(Customer::query()->count())->toBe(1)
+        ->and($customer->email)->toBe('nadia@example.com')
+        ->and($customer->name)->toBe('Nadia P.')
+        ->and($customer->address)->toContain('Jl. Merdeka 10')
+        ->and(Invoice::query()->count())->toBe(2);
 });
